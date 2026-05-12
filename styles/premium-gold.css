@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  AMB SACRED PALETTE 
+  Strict adherence required.
+*/
+
+:root {
+    --bg-depth: #0B0F14;
+    /* Deep Navy - NOT BLACK */
+    --bg-surface: #11161D;
+    /* Lighter Navy */
+
+    --gold-primary: #C6A85A;
+    /* Soft Gold - NOT BRIGHT */
+    --gold-highlight: #F6E27A;
+    /* Hover only */
+    --gold-muted: #8C6B1F;
+    /* Borders/Dim */
+
+    --text-primary: #EAEAEA;
+    /* Soft White */
+    --text-secondary: #9CA3AF;
+    /* Muted Gray */
+
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --gold-glow: rgba(198, 168, 90, 0.12);
+}
+
+body {
+    background-color: var(--bg-depth);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Utilities */
+.text-gold {
+    color: var(--gold-primary);
+}
+
+.text-gold-light {
+    color: var(--gold-highlight);
+}
+
+.text-gold-muted {
+    color: var(--gold-muted);
+}
+
+.bg-surface {
+    background-color: var(--bg-surface);
+}
+
+/* Premium Glass Component */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-out;
+}
+
+.glass-panel:hover {
+    box-shadow: 0 0 20px var(--gold-glow);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Scrollbar - Invisible but functional or extremely minimal */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1F2937;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-muted);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.delay-100 {
+    animation-delay: 100ms;
+}
+
+.delay-200 {
+    animation-delay: 200ms;
+}
+
+.delay-300 {
+    animation-delay: 300ms;
+}

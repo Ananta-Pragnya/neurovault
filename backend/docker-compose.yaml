@@ -1,0 +1,28 @@
+services:
+  # Persistence Layer (Layer 5)
+  db:
+    image: postgres:15-alpine
+    container_name: finmotion_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: finmotion
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Shared Nervous System (Layer 2 Bus)
+  redis:
+    image: redis:7-alpine
+    container_name: finmotion_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

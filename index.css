@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --gold-primary: #D4AF37;
+    --gold-light: #F9E2AF;
+    --gold-dark: #9A7B2C;
+    --obsidian: #020305;
+    --platinum: #E5E4E2;
+}
+
+body {
+    background-color: #0D1117;
+    color: var(--platinum);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+.font-heading {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.glass {
+    background: rgba(2, 3, 5, 0.6);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.glass-gold {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(2, 3, 5, 0.4) 100%);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.text-gold {
+    color: var(--gold-primary);
+    background: linear-gradient(to right, #D4AF37, #F9E2AF, #9A7B2C);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brief-text {
+    background: linear-gradient(135deg, #C6A85A 0%, #F6E27A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-gold-gradient {
+    background: linear-gradient(135deg, #D4AF37 0%, #F9E2AF 50%, #9A7B2C 100%);
+}
+
+.gold-shadow {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
+}
+
+.gold-border {
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes gold-shimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.shimmer {
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+    background-size: 200% 100%;
+    animation: gold-shimmer 3s infinite;
+}
+
+.glow-dot {
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.8));
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+/* Enhanced Animations */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Improved spacing */
+.section-padding {
+    padding: 4rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .section-padding {
+        padding: 6rem 2rem;
+    }
+}
+
+/* Clean scrollbars */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 175, 55, 0.3) rgba(0, 0, 0, 0.2);
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.3);
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.5);
+}
