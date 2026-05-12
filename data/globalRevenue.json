@@ -1,0 +1,127 @@
+{
+    "countries": [
+        {
+            "name": "USA",
+            "totalRevenue": 450,
+            "offices": 12,
+            "growth": 14.2,
+            "topCity": "New York",
+            "cities": [
+                {
+                    "name": "New York",
+                    "revenue": 210,
+                    "growth": 12.5,
+                    "lat": 40.7128,
+                    "lng": -74.0060
+                },
+                {
+                    "name": "Chicago",
+                    "revenue": 80,
+                    "growth": 8.4,
+                    "lat": 41.8781,
+                    "lng": -87.6298
+                },
+                {
+                    "name": "San Francisco",
+                    "revenue": 160,
+                    "growth": 18.1,
+                    "lat": 37.7749,
+                    "lng": -122.4194
+                }
+            ]
+        },
+        {
+            "name": "United Kingdom",
+            "totalRevenue": 140,
+            "offices": 4,
+            "growth": 9.8,
+            "topCity": "London",
+            "cities": [
+                {
+                    "name": "London",
+                    "revenue": 140,
+                    "growth": 9.8,
+                    "lat": 51.5074,
+                    "lng": -0.1278
+                }
+            ]
+        },
+        {
+            "name": "India",
+            "totalRevenue": 215,
+            "offices": 8,
+            "growth": 22.5,
+            "topCity": "Mumbai",
+            "cities": [
+                {
+                    "name": "Mumbai",
+                    "revenue": 120,
+                    "growth": 24.1,
+                    "lat": 19.0760,
+                    "lng": 72.8777
+                },
+                {
+                    "name": "Bangalore",
+                    "revenue": 95,
+                    "growth": 20.2,
+                    "lat": 12.9716,
+                    "lng": 77.5946
+                }
+            ]
+        },
+        {
+            "name": "Singapore",
+            "totalRevenue": 110,
+            "offices": 2,
+            "growth": 11.4,
+            "topCity": "Singapore",
+            "cities": [
+                {
+                    "name": "Singapore",
+                    "revenue": 110,
+                    "growth": 11.4,
+                    "lat": 1.3521,
+                    "lng": 103.8198
+                }
+            ]
+        },
+        {
+            "name": "UAE",
+            "totalRevenue": 90,
+            "offices": 3,
+            "growth": 15.6,
+            "topCity": "Dubai",
+            "cities": [
+                {
+                    "name": "Dubai",
+                    "revenue": 90,
+                    "growth": 15.6,
+                    "lat": 25.2048,
+                    "lng": 55.2708
+                }
+            ]
+        }
+    ],
+    "connections": [
+        {
+            "from": "New York",
+            "to": "London"
+        },
+        {
+            "from": "New York",
+            "to": "Singapore"
+        },
+        {
+            "from": "London",
+            "to": "Dubai"
+        },
+        {
+            "from": "Mumbai",
+            "to": "Singapore"
+        },
+        {
+            "from": "San Francisco",
+            "to": "Bangalore"
+        }
+    ]
+}

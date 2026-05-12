@@ -1,0 +1,352 @@
+{
+    "monthlyPerformance": [
+        {
+            "month": "2024-01",
+            "aum": 820,
+            "return": 2.1,
+            "revenue": 17.2,
+            "cost": 9.8,
+            "profit": 7.4,
+            "sharpe": 1.8
+        },
+        {
+            "month": "2024-02",
+            "aum": 835,
+            "return": 1.7,
+            "revenue": 15.1,
+            "cost": 9.5,
+            "profit": 5.6,
+            "sharpe": 1.6
+        },
+        {
+            "month": "2024-03",
+            "aum": 860,
+            "return": 3.0,
+            "revenue": 21.5,
+            "cost": 10.3,
+            "profit": 11.2,
+            "sharpe": 2.0
+        },
+        {
+            "month": "2024-04",
+            "aum": 845,
+            "return": -1.8,
+            "revenue": 10.8,
+            "cost": 10.1,
+            "profit": 0.7,
+            "sharpe": 0.9
+        },
+        {
+            "month": "2024-05",
+            "aum": 870,
+            "return": 2.9,
+            "revenue": 22.4,
+            "cost": 10.5,
+            "profit": 11.9,
+            "sharpe": 2.1
+        },
+        {
+            "month": "2024-06",
+            "aum": 900,
+            "return": 3.4,
+            "revenue": 26.3,
+            "cost": 11.0,
+            "profit": 15.3,
+            "sharpe": 2.3
+        },
+        {
+            "month": "2024-07",
+            "aum": 920,
+            "return": 2.2,
+            "revenue": 18.8,
+            "cost": 11.2,
+            "profit": 7.6,
+            "sharpe": 1.9
+        },
+        {
+            "month": "2024-08",
+            "aum": 910,
+            "return": -1.1,
+            "revenue": 12.2,
+            "cost": 10.9,
+            "profit": 1.3,
+            "sharpe": 1.1
+        },
+        {
+            "month": "2024-09",
+            "aum": 940,
+            "return": 3.7,
+            "revenue": 27.6,
+            "cost": 11.5,
+            "profit": 16.1,
+            "sharpe": 2.4
+        },
+        {
+            "month": "2024-10",
+            "aum": 960,
+            "return": 2.0,
+            "revenue": 19.1,
+            "cost": 11.6,
+            "profit": 7.5,
+            "sharpe": 1.8
+        },
+        {
+            "month": "2024-11",
+            "aum": 990,
+            "return": 3.3,
+            "revenue": 25.0,
+            "cost": 12.1,
+            "profit": 12.9,
+            "sharpe": 2.2
+        },
+        {
+            "month": "2024-12",
+            "aum": 1025,
+            "return": 3.5,
+            "revenue": 29.3,
+            "cost": 12.8,
+            "profit": 16.5,
+            "sharpe": 2.5
+        },
+        {
+            "month": "2025-01",
+            "aum": 1040,
+            "return": 1.6,
+            "revenue": 16.7,
+            "cost": 12.5,
+            "profit": 4.2,
+            "sharpe": 1.5
+        },
+        {
+            "month": "2025-02",
+            "aum": 1070,
+            "return": 2.8,
+            "revenue": 23.9,
+            "cost": 13.0,
+            "profit": 10.9,
+            "sharpe": 2.0
+        },
+        {
+            "month": "2025-03",
+            "aum": 1100,
+            "return": 3.1,
+            "revenue": 26.2,
+            "cost": 13.6,
+            "profit": 12.6,
+            "sharpe": 2.2
+        },
+        {
+            "month": "2025-04",
+            "aum": 1085,
+            "return": -1.4,
+            "revenue": 13.0,
+            "cost": 13.2,
+            "profit": -0.2,
+            "sharpe": 1.0
+        },
+        {
+            "month": "2025-05",
+            "aum": 1120,
+            "return": 3.9,
+            "revenue": 30.5,
+            "cost": 13.9,
+            "profit": 16.6,
+            "sharpe": 2.6
+        },
+        {
+            "month": "2025-06",
+            "aum": 1150,
+            "return": 2.7,
+            "revenue": 23.8,
+            "cost": 14.3,
+            "profit": 9.5,
+            "sharpe": 2.0
+        },
+        {
+            "month": "2025-07",
+            "aum": 1185,
+            "return": 3.4,
+            "revenue": 29.7,
+            "cost": 14.9,
+            "profit": 14.8,
+            "sharpe": 2.3
+        },
+        {
+            "month": "2025-08",
+            "aum": 1200,
+            "return": 1.9,
+            "revenue": 18.4,
+            "cost": 15.0,
+            "profit": 3.4,
+            "sharpe": 1.7
+        },
+        {
+            "month": "2025-09",
+            "aum": 1235,
+            "return": 3.6,
+            "revenue": 31.1,
+            "cost": 15.7,
+            "profit": 15.4,
+            "sharpe": 2.5
+        },
+        {
+            "month": "2025-10",
+            "aum": 1250,
+            "return": 2.1,
+            "revenue": 20.5,
+            "cost": 16.0,
+            "profit": 4.5,
+            "sharpe": 1.9
+        },
+        {
+            "month": "2025-11",
+            "aum": 1285,
+            "return": 3.8,
+            "revenue": 34.2,
+            "cost": 16.8,
+            "profit": 17.4,
+            "sharpe": 2.7
+        },
+        {
+            "month": "2025-12",
+            "aum": 1320,
+            "return": 3.2,
+            "revenue": 30.0,
+            "cost": 17.5,
+            "profit": 12.5,
+            "sharpe": 2.3
+        }
+    ],
+    "strategies": [
+        {
+            "name": "AI Equity Long/Short",
+            "allocation": 32,
+            "return": 18,
+            "volatility": 12,
+            "profit": 95
+        },
+        {
+            "name": "Stat Arbitrage AI",
+            "allocation": 22,
+            "return": 14,
+            "volatility": 8,
+            "profit": 61
+        },
+        {
+            "name": "Crypto Quant AI",
+            "allocation": 10,
+            "return": 25,
+            "volatility": 30,
+            "profit": 55
+        },
+        {
+            "name": "Options Market Making AI",
+            "allocation": 15,
+            "return": 12,
+            "volatility": 6,
+            "profit": 48
+        },
+        {
+            "name": "Macro Prediction Models",
+            "allocation": 12,
+            "return": 16,
+            "volatility": 10,
+            "profit": 53
+        },
+        {
+            "name": "High Frequency Trading",
+            "name_short": "HFT",
+            "allocation": 9,
+            "return": 11,
+            "volatility": 5,
+            "profit": 29
+        }
+    ],
+    "aiModels": [
+        {
+            "name": "AlphaNet v4",
+            "type": "Transformer",
+            "accuracy": 71,
+            "latency": 12,
+            "trades": 5200,
+            "pnl": 68
+        },
+        {
+            "name": "Orion LSTM",
+            "type": "LSTM",
+            "accuracy": 65,
+            "latency": 9,
+            "trades": 4300,
+            "pnl": 41
+        },
+        {
+            "name": "QuantumBoost",
+            "type": "XGBoost",
+            "accuracy": 63,
+            "latency": 5,
+            "trades": 6100,
+            "pnl": 38
+        },
+        {
+            "name": "SentimentGPT",
+            "type": "NLP",
+            "accuracy": 69,
+            "latency": 25,
+            "trades": 2100,
+            "pnl": 27
+        },
+        {
+            "name": "VolatilityGAN",
+            "type": "GAN",
+            "accuracy": 67,
+            "latency": 30,
+            "trades": 1800,
+            "pnl": 22
+        },
+        {
+            "name": "MetaRL Agent",
+            "type": "RL",
+            "accuracy": 73,
+            "latency": 18,
+            "trades": 3500,
+            "pnl": 74
+        }
+    ],
+    "departments": [
+        {
+            "name": "Research AI",
+            "employees": 48,
+            "cost": 42
+        },
+        {
+            "name": "Engineering",
+            "employees": 35,
+            "cost": 28
+        },
+        {
+            "name": "Quant Trading",
+            "employees": 22,
+            "cost": 31
+        },
+        {
+            "name": "Data Infrastructure",
+            "employees": 18,
+            "cost": 19
+        },
+        {
+            "name": "Compliance",
+            "employees": 10,
+            "cost": 11
+        },
+        {
+            "name": "Operations",
+            "employees": 14,
+            "cost": 13
+        },
+        {
+            "name": "Management",
+            "employees": 6,
+            "cost": 16
+        }
+    ]
+}

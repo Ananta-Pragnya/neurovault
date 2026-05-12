@@ -1,0 +1,7 @@
+{
+  "name": "FinMotion: Premium Financial Intelligence",
+  "description": "A high-end, motion-graphics powered financial platform featuring live global market tracking, AI-driven algorithmic analysis, portfolio management, and cinematic data visualizations.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

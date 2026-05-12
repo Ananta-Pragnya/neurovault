@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Financial Intelligence Grid</title>
+    <!-- Fonts: Syne for Headline, IBM Plex Mono for UI Data -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <!-- D3.js and TopoJSON -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+
+    <style>
+        :root {
+            --bg-dark: #050d1a;
+            --bg-light: #0a1628;
+            --map-fill: #0d1f3c;
+            --map-stroke: rgba(26, 47, 80, 0.3);
+            --gold: #e8c84a;
+            --gold-glow: rgba(232, 200, 74, 0.6);
+            --teal: #4a8fa8;
+            --glass-bg: rgba(5, 15, 35, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.07);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+            overflow: hidden;
+            font-family: 'IBM Plex Mono', monospace;
+            color: #fff;
+        }
+
+        /* The Map Canvas */
+        #map-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120vw;
+            height: 120vh;
+            margin-left: -60vw;
+            margin-top: -60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+
+        /* The Soft Glowing Blob behind the map */
+        .glow-blob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80vw;
+            height: 60vh;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(ellipse at center, rgba(13, 31, 60, 0.8) 0%, transparent 70%);
+            filter: blur(60px);
+            z-index: 0;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 30px rgba(0,0,0,0.5));
+        }
+
+        /* Countries */
+        .country {
+            fill: var(--map-fill);
+            stroke: var(--map-stroke);
+            stroke-width: 0.5px;
+            transition: fill 0.3s;
+        }
+
+        /* City Dots */
+        .city-dot {
+            fill: var(--gold);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .city-glow {
+            fill: var(--gold);
+            filter: blur(4px);
+            opacity: 0.6;
+            pointer-events: none;
+            animation: pulse-glow 3s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.5); }
+        }
+
+        .city-dot:hover {
+            fill: #fff;
+        }
+
+        /* Connection Lines */
+        .connection-line {
+            fill: none;
+            stroke: var(--teal);
+            stroke-width: 1px;
+            opacity: 0.5;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: dash 5s linear infinite;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: -600; }
+        }
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background: rgba(5, 15, 35, 0.9);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transform: translate(-50%, -150%);
+        }
+
+        /* Frosted Glass UI Cards */
+        .glass-card {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+
+        /* Overlay Layout */
+        #hero-overlay {
+            top: 40px;
+            left: 40px;
+            width: 380px;
+        }
+
+        .eyebrow {
+            color: var(--teal);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .eyebrow::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            background: var(--teal);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--teal);
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 38px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+
+        .subline {
+            color: #8b9bb4;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Top Right Stats */
+        #stats-card {
+            top: 40px;
+            right: 40px;
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .stat-label {
+            color: #8b9bb4;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .stat-delta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .delta-up { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+        .delta-down { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+
+        .sparkline {
+            margin-top: 8px;
+            height: 40px;
+            width: 100%;
+        }
+        
+        .sparkline path {
+            fill: none;
+            stroke: var(--gold);
+            stroke-width: 2px;
+            stroke-linecap: round;
+            filter: drop-shadow(0 4px 6px rgba(232, 200, 74, 0.3));
+        }
+
+        /* Bottom Info Panel */
+        #info-panel {
+            position: absolute;
+            bottom: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            transition: bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #info-panel.visible {
+            bottom: 40px;
+        }
+
+        .info-city {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .info-data {
+            text-align: right;
+        }
+
+        .info-ping {
+            color: #4ade80;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .info-vol {
+            color: #8b9bb4;
+            font-size: 10px;
+            margin-top: 4px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            cursor: pointer;
+            color: #8b9bb4;
+            font-size: 16px;
+        }
+        .close-btn:hover { color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <div class="glow-blob"></div>
+
+    <div id="map-container">
+        <!-- SVG injected by D3 -->
+    </div>
+
+    <!-- UI Overlay Left -->
+    <div id="hero-overlay" class="glass-card">
+        <div class="eyebrow">Global Infrastructure</div>
+        <h1>Autonomous Intelligence Node</h1>
+        <p class="subline">Real-time latency synchronization across 48 primary financial hubs. Market microstructure analyzed and compressed.</p>
+    </div>
+
+    <!-- UI Overlay Right -->
+    <div id="stats-card" class="glass-card">
+        <div>
+            <div class="stat-label">System Liquidity Detected</div>
+            <div class="stat-value">
+                <span id="live-metric">$84.2B</span>
+                <span class="stat-delta delta-up" id="live-delta">+1.24%</span>
+            </div>
+            <svg class="sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
+                <path id="sparkline-path" d="M0,30 Q20,10 40,25 T80,15 T120,35 T160,5 T200,10"></path>
+            </svg>
+        </div>
+        <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px;">
+            <div class="stat-label mb-1">Global Order Flow</div>
+            <div style="font-size: 14px; font-weight: 600; color: #fff;">18,442 msgs/sec</div>
+        </div>
+    </div>
+
+    <!-- Hover Tooltip -->
+    <div id="tooltip"></div>
+
+    <!-- Bottom Info Panel -->
+    <div id="info-panel" class="glass-card">
+        <span class="close-btn" onclick="document.getElementById('info-panel').classList.remove('visible')">×</span>
+        <div>
+            <div class="stat-label">Active Hub</div>
+            <div class="info-city" id="panel-city">LONDON</div>
+        </div>
+        <div class="info-data">
+            <div class="info-ping" id="panel-ping">• 18ms Latency</div>
+            <div class="info-vol" id="panel-vol">Vol: 1.2M req/s</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION & DATA ---
+        const width = 1200;
+        const height = 800;
+
+        // ~45 Major Financial Hubs
+        const cities = [
+            { name: "New York", coords: [-74.006, 40.7128] },
+            { name: "London", coords: [-0.1276, 51.5072] },
+            { name: "Tokyo", coords: [139.6503, 35.6762] },
+            { name: "Singapore", coords: [103.8198, 1.3521] },
+            { name: "Hong Kong", coords: [114.1694, 22.3193] },
+            { name: "Shanghai", coords: [121.4737, 31.2304] },
+            { name: "Los Angeles", coords: [-118.2437, 34.0522] },
+            { name: "Chicago", coords: [-87.6298, 41.8781] },
+            { name: "Beijing", coords: [116.4074, 39.9042] },
+            { name: "Paris", coords: [2.3522, 48.8566] },
+            { name: "Frankfurt", coords: [8.6821, 50.1109] },
+            { name: "Seoul", coords: [126.9780, 37.5665] },
+            { name: "Sydney", coords: [151.2093, -33.8688] },
+            { name: "Toronto", coords: [-79.3832, 43.6532] },
+            { name: "Mumbai", coords: [72.8777, 19.0760] },
+            { name: "Dubai", coords: [55.2708, 25.2048] },
+            { name: "Zurich", coords: [8.5417, 47.3769] },
+            { name: "São Paulo", coords: [-46.6333, -23.5505] },
+            { name: "Moscow", coords: [37.6173, 55.7558] },
+            { name: "Johannesburg", coords: [28.0473, -26.2041] },
+            { name: "Riyadh", coords: [46.7167, 24.6333] },
+            { name: "Amsterdam", coords: [4.9041, 52.3676] },
+            { name: "Geneva", coords: [6.1432, 46.2044] },
+            { name: "Taipei", coords: [121.5654, 25.0330] },
+            { name: "Bangkok", coords: [100.5018, 13.7563] },
+            { name: "Kuala Lumpur", coords: [101.6869, 3.1390] },
+            { name: "Jakarta", coords: [106.8456, -6.2088] },
+            { name: "Manila", coords: [120.9842, 14.5995] },
+            { name: "Istanbul", coords: [28.9784, 41.0082] },
+            { name: "Tel Aviv", coords: [34.7818, 32.0853] },
+            { name: "Mexico City", coords: [-99.1332, 19.4326] },
+            { name: "Buenos Aires", coords: [-58.3816, -34.6037] },
+            { name: "Santiago", coords: [-70.6693, -33.4489] },
+            { name: "Bogota", coords: [-74.0721, 4.7110] },
+            { name: "San Francisco", coords: [-122.4194, 37.7749] },
+            { name: "Boston", coords: [-71.0589, 42.3601] },
+            { name: "Houston", coords: [-95.3698, 29.7604] },
+            { name: "Washington DC", coords: [-77.0369, 38.9072] },
+            { name: "Cape Town", coords: [18.4232, -33.9249] },
+            { name: "Nairobi", coords: [36.8219, -1.2921] },
+            { name: "Lagos", coords: [3.3792, 6.5244] },
+            { name: "Cairo", coords: [31.2357, 30.0444] },
+            { name: "New Delhi", coords: [77.2090, 28.6139] },
+            { name: "Melbourne", coords: [144.9631, -37.8136] },
+            { name: "Auckland", coords: [174.7633, -36.8485] }
+        ];
+
+        // Connection Paths
+        const connections = [
+            ["New York", "London"],
+            ["London", "Frankfurt"],
+            ["Frankfurt", "Dubai"],
+            ["Dubai", "Singapore"],
+            ["Singapore", "Hong Kong"],
+            ["Hong Kong", "Tokyo"],
+            ["Tokyo", "Sydney"],
+            ["London", "Singapore"],
+            ["New York", "Tokyo"],
+            ["San Francisco", "Tokyo"],
+            ["New York", "São Paulo"],
+            ["London", "Johannesburg"]
+        ];
+
+        // --- 2. D3 MAP SETUP ---
+        const svg = d3.select("#map-container")
+            .append("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const projection = d3.geoNaturalEarth1()
+            .scale(220)
+            .translate([width / 2, height / 2 + 40]);
+
+        const path = d3.geoPath().projection(projection);
+
+        // Map Group
+        const g = svg.append("g");
+
+        // Tooltip
+        const tooltip = document.getElementById("tooltip");
+
+        // Fetch TopoJSON
+        d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then((world) => {
+            const countries = topojson.feature(world, world.objects.countries).features;
+
+            // Draw Countries
+            g.selectAll("path.country")
+                .data(countries)
+                .enter()
+                .append("path")
+                .attr("class", "country")
+                .attr("d", path);
+
+            // Draw City Connections (Curves)
+            const getCoords = (name) => cities.find(c => c.name === name).coords;
+            connections.forEach(pair => {
+                const source = projection(getCoords(pair[0]));
+                const target = projection(getCoords(pair[1]));
+                // Create a quadratic bezier curve for arc effect
+                const dx = target[0] - source[0];
+                const dy = target[1] - source[1];
+                const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Curvature
+
+                g.append("path")
+                    .attr("class", "connection-line")
+                    .attr("d", `M${source[0]},${source[1]} Q${source[0] + dx/2},${source[1] + dy/2 - dr/4} ${target[0]},${target[1]}`)
+                    .style("animation-delay", `${Math.random() * 2}s`);
+            });
+
+            // Draw City Glows
+            g.selectAll("circle.city-glow")
+                .data(cities)
+                .enter()
+                .append("circle")
+                .attr("class", "city-glow")
+                .attr("cx", d => projection(d.coords)[0])
+                .attr("cy", d => projection(d.coords)[1])
+                .attr("r", 5)
+                .style("animation-delay", () => `${Math.random() * 3}s`)
+                .style("transform-origin", d => `${projection(d.coords)[0]}px ${projection(d.coords)[1]}px`);
+
+            // Draw City Cores
+            g.selectAll("circle.city-dot")
+                .data(cities)
+                .enter()
+                .append("circle")
+                .attr("class", "city-dot")
+                .attr("cx", d => projection(d.coords)[0])
+                .attr("cy", d => projection(d.coords)[1])
+                .attr("r", 2.5)
+                .on("mouseover", function(event, d) {
+                    d3.select(this).transition().duration(200).attr("r", 5);
+                    tooltip.style.opacity = 1;
+                    tooltip.innerHTML = d.name;
+                    // Position tooltip
+                    const [x, y] = projection(d.coords);
+                    const svgRect = svg.node().getBoundingClientRect();
+                    const cX = svgRect.left + (x * svgRect.width / width);
+                    const cY = svgRect.top + (y * svgRect.height / height);
+                    tooltip.style.left = cX + "px";
+                    tooltip.style.top = (cY - 10) + "px";
+                })
+                .on("mouseout", function() {
+                    d3.select(this).transition().duration(200).attr("r", 2.5);
+                    tooltip.style.opacity = 0;
+                })
+                .on("click", function(event, d) {
+                    const panel = document.getElementById("info-panel");
+                    document.getElementById("panel-city").innerText = d.name;
+                    document.getElementById("panel-ping").innerText = `• ${Math.floor(Math.random()*40 + 5)}ms Latency`;
+                    document.getElementById("panel-vol").innerText = `Vol: ${(Math.random()*3 + 0.1).toFixed(1)}M req/s`;
+                    panel.classList.add("visible");
+                });
+        });
+
+        // --- 3. UI INTERACTIONS & SIMULATION ---
+        
+        // Parallax Effect
+        document.addEventListener('mousemove', (e) => {
+            requestAnimationFrame(() => {
+                const x = e.clientX / window.innerWidth - 0.5;
+                const y = e.clientY / window.innerHeight - 0.5;
+                
+                // Move map container
+                document.getElementById('map-container').style.transform = `translate(${x * 16}px, ${y * 16}px) scale(1.02)`;
+                
+                // Move cards opposite
+                document.querySelectorAll('.glass-card').forEach(c => {
+                    // don't move the bottom panel if it's anchored
+                    if (c.id !== 'info-panel') {
+                        c.style.transform = `translate(${x * -8}px, ${y * -8}px)`;
+                    }
+                });
+            });
+        });
+
+        // Live Fake Data Ticker
+        let baseValue = 84.2;
+        setInterval(() => {
+            const up = Math.random() > 0.4; // slight upward bias
+            const diff = (Math.random() * 0.5) * (up ? 1 : -1);
+            baseValue += diff;
+            
+            document.getElementById('live-metric').innerText = '$' + baseValue.toFixed(2) + 'B';
+            
+            const deltaEl = document.getElementById('live-delta');
+            if (diff >= 0) {
+                deltaEl.className = 'stat-delta delta-up';
+                deltaEl.innerText = '+' + diff.toFixed(2) + '%';
+            } else {
+                deltaEl.className = 'stat-delta delta-down';
+                deltaEl.innerText = diff.toFixed(2) + '%';
+            }
+        }, 3000);
+
+        // Sparkline Animation via Canvas/SVG update
+        const maxPoints = 12;
+        let points = Array.from({length: maxPoints}, () => Math.random() * 30 + 5);
+        
+        const updateSparkline = () => {
+            points.push(Math.random() * 30 + 5);
+            points.shift();
+            
+            const dx = 200 / (maxPoints - 1);
+            let d = `M 0,${40 - points[0]}`;
+            
+            for(let i=1; i<points.length; i++) {
+                // Bezier curves for smoothness
+                const x0 = (i-1)*dx;
+                const y0 = 40 - points[i-1];
+                const x1 = i*dx;
+                const y1 = 40 - points[i];
+                const cpX = x0 + dx/2;
+                
+                d += ` C ${cpX},${y0} ${cpX},${y1} ${x1},${y1}`;
+            }
+            
+            document.getElementById('sparkline-path').setAttribute('d', d);
+        };
+        
+        setInterval(updateSparkline, 2000);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finmotion-backend"
+version = "0.1.0"
+description = "FinMotion Backend Platform"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pandas",
+    "numpy",
+    "yfinance",
+    "scikit-learn",
+    "sqlalchemy",
+    "pydantic",
+    "python-dotenv",
+    "apscheduler",
+    "joblib",
+    "h5py",
+    "google-generativeai",
+    "scipy",
+    "requests",
+    "redis",
+    "httpx",
+    "anthropic",
+    "pytest",
+    "alembic",
+    "psycopg2-binary",
+    "websockets"
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["tests"]
