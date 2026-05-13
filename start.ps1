@@ -11,7 +11,7 @@ $CurrentDir = Get-Location
 
 # Start Python backend on port 8000
 Write-Host "📊 Starting Python Intelligence Engine..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$CurrentDir'; `$env:PYTHONPATH = '$CurrentDir'; python backend/main.py"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location '$CurrentDir'; `$env:PYTHONPATH = '$CurrentDir'; uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
 
 # Wait a bit for backend to start
 Start-Sleep -Seconds 3

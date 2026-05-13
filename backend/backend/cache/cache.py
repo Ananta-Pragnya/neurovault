@@ -100,14 +100,15 @@ class UnifiedCache:
         self._store: dict = {}
         self._ttl  = ttl_seconds
 
-    def set(self, key: str, value: Any):
-        self._store[key] = {"value": value, "ts": time.time()}
+    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+        effective_ttl = ttl if ttl is not None else self._ttl
+        self._store[key] = {"value": value, "ts": time.time(), "ttl": effective_ttl}
 
     def get(self, key: str) -> Any:
         entry = self._store.get(key)
         if not entry:
             return None
-        if time.time() - entry["ts"] > self._ttl:
+        if time.time() - entry["ts"] > entry.get("ttl", self._ttl):
             del self._store[key]
             return None
         return entry["value"]
@@ -140,8 +141,8 @@ class UnifiedCache:
 
     def clear_expired(self):
         now    = time.time()
-        stale  = [k for k, v in self._store.items() 
-                  if now - v["ts"] > self._ttl]
+        stale  = [k for k, v in self._store.items()
+                  if now - v["ts"] > v.get("ttl", self._ttl)]
         for k in stale:
             del self._store[k]
 
