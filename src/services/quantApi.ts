@@ -11,7 +11,7 @@
  *    to backend /api/bars if Yahoo fails.
  */
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 // ── Helper: compute RSI from close prices ─────────────────────────
 function computeRSI(prices: number[], period = 14): number {

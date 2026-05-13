@@ -84,7 +84,8 @@ export const MarketPulseDashboard: React.FC = () => {
   const [flashingSymbols, setFlashingSymbols] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8000/ws/data-hub');
+    const wsBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace('https://', 'wss://').replace('http://', 'ws://');
+    const socket = new WebSocket(`${wsBase}/ws/data-hub`);
 
     socket.onmessage = (event) => {
       try {

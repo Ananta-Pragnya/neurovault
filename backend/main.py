@@ -202,6 +202,41 @@ class StrategyRequest(BaseModel):
     width:          float = 5.0
     expiry_days:    int   = 30
 
+class SignalRequest(BaseModel):
+    ticker: str
+    price: float = 0.0
+    change_pct: float = 0.0
+    volume: float = 0.0
+
+class IntelligenceRequest(BaseModel):
+    query: str
+
+
+# ── Black-Scholes helpers (used by options chain endpoint) ─────────
+import math as _math
+
+def _norm_cdf(x: float) -> float:
+    return 0.5 * (1.0 + _math.erf(x / _math.sqrt(2.0)))
+
+def _bs_option(S: float, K: float, T: float, r: float, sigma: float, opt_type: str) -> dict:
+    if T <= 0:
+        intrinsic = max(S - K, 0) if opt_type == "call" else max(K - S, 0)
+        return {"price": round(intrinsic, 2), "delta": 1.0 if (opt_type == "call" and S > K) else 0.0, "theta": 0.0}
+    sq_T = _math.sqrt(T)
+    d1 = (_math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * sq_T)
+    d2 = d1 - sigma * sq_T
+    disc = _math.exp(-r * T)
+    phi_d1 = _norm_cdf(d1)
+    if opt_type == "call":
+        price = S * phi_d1 - K * disc * _norm_cdf(d2)
+        delta = phi_d1
+        theta = (-S * phi_d1 * sigma / (2 * sq_T) - r * K * disc * _norm_cdf(d2)) / 365.0
+    else:
+        price = K * disc * _norm_cdf(-d2) - S * _norm_cdf(-d1)
+        delta = phi_d1 - 1.0
+        theta = (-S * phi_d1 * sigma / (2 * sq_T) + r * K * disc * _norm_cdf(-d2)) / 365.0
+    return {"price": round(max(price, 0.01), 2), "delta": round(delta, 3), "theta": round(theta, 4)}
+
 
 # ── Health ─────────────────────────────────────────────────────────
 @app.get("/health")
@@ -442,6 +477,177 @@ async def strategy_suggest(
 ):
     return suggest_strategy(iv_rank, trend.upper(), days_to_expiry,
                             earnings_soon=earnings_soon)
+
+
+# ── AI Signal Endpoint ─────────────────────────────────────────────
+@app.post("/api/signal")
+async def ai_signal(req: SignalRequest):
+    """Map TA ensemble forecast → frontend SignalEngine shape."""
+    sym = req.ticker.upper()
+    cache_key = f"forecast:{sym}"
+    result = unified_cache.get(cache_key)
+    if not result:
+        try:
+            result = await quant_service.run_ensemble_forecast(sym)
+            if "error" not in result:
+                try:
+                    result["reasoning"] = await generate_forecast_reasoning(result)
+                except Exception:
+                    result["reasoning"] = result.get("market_analysis", "")
+                unified_cache.set(cache_key, result, ttl=300)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    direction  = result.get("direction", "neutral")
+    confidence = result.get("confidence", 50)
+    _sig  = {"bullish": "STRONG_BUY",  "bearish": "STRONG_SELL",  "neutral": "HOLD"}
+    _risk = {"bullish": "LOW",          "bearish": "HIGH",          "neutral": "MEDIUM"}
+    _act  = {
+        "bullish": f"Enter long position on {sym}. TA ensemble confirms bullish momentum with {confidence:.0f}% confidence.",
+        "bearish": f"Reduce exposure or hedge {sym}. Bearish pressure detected with {confidence:.0f}% confidence.",
+        "neutral": f"Hold {sym}. Mixed signals — wait for directional confirmation before adding.",
+    }
+    return {
+        "signal":           _sig.get(direction, "HOLD"),
+        "trend":            direction.upper(),
+        "confidence":       confidence,
+        "risk_level":       _risk.get(direction, "MEDIUM"),
+        "reasoning":        result.get("reasoning", result.get("market_analysis", "")),
+        "suggested_action": _act.get(direction, ""),
+        "price_target":     result.get("price_target"),
+        "last_close":       result.get("last_close"),
+        "rsi":              result.get("rsi"),
+        "momentum_pct":     result.get("momentum_pct"),
+        "source":           "real_ta",
+    }
+
+
+# ── Deep Intel — News Intelligence Synthesis ──────────────────────
+@app.post("/api/intelligence/news")
+async def intelligence_news(req: IntelligenceRequest):
+    """Fetch Finnhub news + Groq synthesis → NewsIntelligenceResponse shape."""
+    import asyncio as _asyncio, json as _json
+
+    name_map = {
+        "TESLA": "TSLA", "APPLE": "AAPL", "MICROSOFT": "MSFT",
+        "NVIDIA": "NVDA", "GOOGLE": "GOOGL", "ALPHABET": "GOOGL",
+        "AMAZON": "AMZN", "BITCOIN": "BTC", "ETHEREUM": "ETH",
+        "S&P500": "SPY", "SP500": "SPY", "NASDAQ": "QQQ",
+    }
+    symbol = name_map.get(req.query.upper().strip(), req.query.upper().strip())
+    if not symbol:
+        raise HTTPException(status_code=400, detail="query is required")
+
+    news_data = await fetch_and_score_news(symbol)
+    articles  = news_data.get("articles", [])
+    sent_raw  = news_data.get("sentiment", "neutral")
+    sentiment = {"bullish": "Bullish", "bearish": "Bearish"}.get(sent_raw, "Neutral")
+
+    headlines_ctx = "\n".join(f"- {a.get('headline','')}" for a in articles[:5]) if articles else "No recent headlines available."
+
+    system_prompt = (
+        "You are a market intelligence analyst. Given news context, return ONLY valid JSON:\n"
+        '{"summary":"2-sentence executive summary","keyPoints":["point1","point2","point3"],"prediction":"1-sentence short-term outlook"}'
+    )
+    user_prompt = (
+        f"Symbol: {symbol}\nSentiment: {sentiment} (score {news_data.get('score', 0):.3f})\n"
+        f"Recent Headlines:\n{headlines_ctx}\n\nGenerate intelligence report."
+    )
+
+    summary, key_points, prediction = "", [], ""
+    try:
+        from backend.backend.services.llama_service import _call_groq
+        raw = await _asyncio.to_thread(_call_groq, system_prompt, user_prompt, 400, "primary")
+        cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        parsed  = _json.loads(cleaned)
+        summary    = parsed.get("summary", "")
+        key_points = parsed.get("keyPoints", [])[:3]
+        prediction = parsed.get("prediction", "")
+    except Exception as e:
+        logger.warning(f"[Intel] Groq synthesis failed for {symbol}: {e}")
+        summary    = f"{symbol} shows {sent_raw} sentiment based on {len(articles)} recent articles."
+        key_points = [
+            f"Sentiment score: {news_data.get('score', 0):.3f} ({sentiment})",
+            f"{len(articles)} articles analyzed over the past 7 days.",
+            "Monitor for earnings, macro shifts, or sector catalysts.",
+        ]
+        prediction = f"Near-term outlook is {sent_raw} for {symbol} based on current news flow."
+
+    sources = [
+        {"title": a.get("headline", ""), "uri": a.get("url", "#")}
+        for a in articles[:3] if a.get("headline")
+    ]
+    return {
+        "symbol":    symbol,
+        "summary":   summary,
+        "keyPoints": key_points,
+        "sentiment": sentiment,
+        "prediction": prediction,
+        "sources":   sources,
+        "score":     news_data.get("score", 0),
+        "timestamp": time.time(),
+    }
+
+
+# ── Options Chain Endpoints ────────────────────────────────────────
+@app.get("/api/options/expirations/{symbol}")
+async def options_expirations(symbol: str):
+    """Return next 4 monthly option expiration dates (3rd Friday)."""
+    from datetime import date as _date, timedelta as _td
+    today = _date.today()
+    expirations = []
+    for months_ahead in range(1, 5):
+        raw_month = today.month + months_ahead
+        year  = today.year + (raw_month - 1) // 12
+        month = (raw_month - 1) % 12 + 1
+        first = _date(year, month, 1)
+        days_to_friday = (4 - first.weekday()) % 7   # 4 = Friday
+        third_friday   = first + _td(days=days_to_friday + 14)
+        expirations.append(third_friday.isoformat())
+    return expirations
+
+
+@app.get("/api/options/chain/{symbol}")
+async def options_chain(symbol: str, expiry: str = Query("")):
+    """Generate Black-Scholes options chain around current spot price."""
+    from datetime import date as _date
+    sym  = symbol.upper()
+    snap = unified_cache.get(sym)
+    S    = snap.get("price", 100.0) if snap else 100.0
+
+    today = _date.today()
+    if expiry:
+        try:
+            exp_date = _date.fromisoformat(expiry)
+            dte = max((exp_date - today).days, 1)
+        except Exception:
+            dte = 30
+    else:
+        dte = 30
+
+    T     = dte / 365.0
+    r     = 0.05    # risk-free rate
+    sigma = 0.25    # approximate IV
+
+    multipliers = [0.85, 0.88, 0.90, 0.92, 0.94, 0.96, 0.97, 0.98, 0.99,
+                   1.00, 1.01, 1.02, 1.03, 1.04, 1.06, 1.08, 1.10, 1.12, 1.15]
+    chain = []
+    for m in multipliers:
+        K      = round(S * m, 2)
+        call   = _bs_option(S, K, T, r, sigma, "call")
+        put    = _bs_option(S, K, T, r, sigma, "put")
+        spread = round(max(call["price"] * 0.05, 0.05), 2)
+        chain.append({
+            "strike":      K,
+            "call_bid":    round(max(call["price"] - spread / 2, 0.01), 2),
+            "call_ask":    round(call["price"] + spread / 2, 2),
+            "call_greeks": {"delta": call["delta"], "theta": call["theta"]},
+            "put_bid":     round(max(put["price"]  - spread / 2, 0.01), 2),
+            "put_ask":     round(put["price"]  + spread / 2, 2),
+            "put_greeks":  {"delta": put["delta"],  "theta": put["theta"]},
+            "source":      "black-scholes",
+        })
+    return chain
 
 
 # ── Legacy routes (backward compat with landing page components) ───
