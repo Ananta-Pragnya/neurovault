@@ -34,7 +34,7 @@ export const MarketDashboard: React.FC = () => {
   
   useEffect(() => {
     fetchMacro();
-    const allTickers = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'RELIANCE.NS', 'BTC-USD', ...SECTORS];
+    const allTickers = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'AMZN', 'META', ...SECTORS];
     fetchQuotes(allTickers);
     
     const interval = setInterval(() => {
@@ -130,10 +130,10 @@ export const MarketDashboard: React.FC = () => {
         )}
         {macro && (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 bg-blue-500/5 border border-blue-500/10 rounded-xl p-4">
-            <MacroItem label="FED RATE" value={`${macro.fed_rate}%`} sub="Target Rate" />
-            <MacroItem label="CPI (YoY)" value={`${macro.cpi}%`} sub="Inflation" />
-            <MacroItem label="10Y YIELD" value={`${macro.yield_10y}%`} sub="Treasury" />
-            <MacroItem label="GDP GROWTH" value={`${macro.gdp_growth}%`} sub="Annualized" />
+            <MacroItem label="FED RATE" value={macro.fed_rate != null ? `${macro.fed_rate}%` : '—'} sub="Target Rate" />
+            <MacroItem label="CPI" value={macro.cpi != null ? `${macro.cpi}` : '—'} sub="Index Level" />
+            <MacroItem label="10Y YIELD" value={macro.yield_10y != null ? `${macro.yield_10y}%` : '—'} sub="Treasury" />
+            <MacroItem label="GDP GROWTH" value={macro.gdp_growth != null ? `$${(macro.gdp_growth / 1000).toFixed(1)}T` : '—'} sub="Nominal GDP" />
             <div className="hidden lg:flex flex-col justify-center px-4 border-l border-white/5">
                <p className="text-[10px] text-blue-400 font-bold uppercase mb-1">Status</p>
                <p className="text-[11px] text-slate-400 leading-tight">Live FRED data feed active. Updated: {macro.last_updated}</p>
