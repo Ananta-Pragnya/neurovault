@@ -17,7 +17,7 @@ export const HeroMarketBrain: React.FC<HeroMarketBrainProps> = ({ digest }) => {
                 <div>
                     <h2 className="text-label text-text-secondary mb-2 uppercase tracking-widest">Market Regime</h2>
                     <h1 className="text-market-mood text-text-primary">
-                        {digest.market_mood.toUpperCase()}
+                        {(digest.market_mood ?? 'neutral').toUpperCase()}
                         <span className="text-primary">.</span>
                     </h1>
                 </div>

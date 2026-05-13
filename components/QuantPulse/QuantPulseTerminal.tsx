@@ -446,7 +446,7 @@ const QuantPulseTerminal: React.FC = () => {
                     : 'bg-slate-800 text-slate-400 border-slate-700'
                 }`}>
                   {forecast.direction === 'bullish' ? <TrendingUp size={10} /> : forecast.direction === 'bearish' ? <TrendingDown size={10} /> : null}
-                  {forecast.direction.toUpperCase()}
+                  {(forecast.direction ?? 'neutral').toUpperCase()}
                 </span>
               )}
             </div>
@@ -508,27 +508,27 @@ const QuantPulseTerminal: React.FC = () => {
               </h3>
               <SignalMeter
                 label="SMA Trend"
-                value={forecast.signals.sma_trend.value}
-                detail={forecast.signals.sma_trend.label}
+                value={forecast.signals?.sma_trend?.value ?? 0}
+                detail={forecast.signals?.sma_trend?.label ?? ''}
               />
               <SignalMeter
                 label="RSI Momentum"
-                value={forecast.signals.rsi_momentum.value}
-                detail={forecast.signals.rsi_momentum.label}
+                value={forecast.signals?.rsi_momentum?.value ?? 0}
+                detail={forecast.signals?.rsi_momentum?.label ?? ''}
               />
               <SignalMeter
                 label="Bollinger"
-                value={forecast.signals.bollinger.value}
-                detail={forecast.signals.bollinger.label}
+                value={forecast.signals?.bollinger?.value ?? 0}
+                detail={forecast.signals?.bollinger?.label ?? ''}
               />
               <div className="pt-2 border-t border-slate-800 space-y-1 text-[10px] font-mono text-slate-500">
                 <div className="flex justify-between">
                   <span>SMA 20</span>
-                  <span className="text-slate-300">${forecast.sma_20.toFixed(2)}</span>
+                  <span className="text-slate-300">${(forecast.sma_20 ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>SMA 50</span>
-                  <span className="text-slate-300">${forecast.sma_50.toFixed(2)}</span>
+                  <span className="text-slate-300">${(forecast.sma_50 ?? 0).toFixed(2)}</span>
                 </div>
               </div>
             </section>
