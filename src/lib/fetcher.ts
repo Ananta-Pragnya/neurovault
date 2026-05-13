@@ -46,7 +46,7 @@ export class BulkFetcher {
 
     private async fetchBatch(tickers: string[]): Promise<TickerSnapshot[]> {
         try {
-            const response = await fetch(`http://localhost:8000/api/alpaca/snapshots?tickers=${tickers.join(',')}`);
+            const response = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/api/alpaca/snapshots?tickers=${tickers.join(',')}`);
             const data = await response.json();
             
             return tickers.map(t => {

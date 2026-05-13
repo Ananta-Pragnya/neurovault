@@ -9,6 +9,7 @@ Results written to SimulationStore and SIMULATION_READY published to Signal Bus.
 
 import numpy as np
 import logging
+from datetime import date, timedelta
 
 from backend.backend.shared_state import sim_store
 from backend.backend.bus.bus import bus, BusEvent
@@ -38,25 +39,48 @@ async def run_monte_carlo(
         paths   = last_price * np.exp(np.cumsum(returns, axis=1))
 
         final_prices = paths[:, -1]
+        paths_list   = paths[:50, :].tolist()
+
+        # Probability calculations
+        prob_above_start = float(np.mean(final_prices > last_price))
+        prob_loss_10pct  = float(np.mean(final_prices < last_price * 0.90))
+
+        # Time labels for chart x-axis
+        today       = date.today()
+        time_labels = [(today + timedelta(days=i + 1)).strftime("%m/%d") for i in range(days)]
 
         result = {
-            "symbol":       symbol,
-            "simulations":  simulations,
-            "days":         days,
-            "start_price":  round(last_price, 2),
+            "symbol":      symbol,
+            "simulations": simulations,
+            "days":        days,
+            "start_price": round(last_price, 2),
+            # Nested statistics — consumed directly by SimulationLab.tsx
+            "statistics": {
+                "mean":             round(float(np.mean(final_prices)), 2),
+                "median":           round(float(np.percentile(final_prices, 50)), 2),
+                "percentile_5":     round(float(np.percentile(final_prices, 5)),  2),
+                "percentile_95":    round(float(np.percentile(final_prices, 95)), 2),
+                "prob_above_start": round(prob_above_start, 4),
+                "prob_loss_10pct":  round(prob_loss_10pct,  4),
+            },
+            "paths":       paths_list,
+            "time_labels": time_labels,
+            # Legacy flat fields kept for backward compat
             "percentile_5":  round(float(np.percentile(final_prices, 5)),  2),
             "percentile_50": round(float(np.percentile(final_prices, 50)), 2),
             "percentile_95": round(float(np.percentile(final_prices, 95)), 2),
             "var_95":        round(float(last_price - np.percentile(final_prices, 5)), 2),
             "expected":      round(float(np.mean(final_prices)), 2),
-            # 50 sample paths for chart rendering (keep payload small)
-            "paths_sample":  paths[:50, :].tolist(),
+            "paths_sample":  paths_list,
         }
 
         sim_store.set_ready(symbol, result)
         bus.publish(BusEvent.SIMULATION_READY, {"symbol": symbol})
-        logger.info(f"[MonteCarlo] {symbol}: {simulations} paths done. "
-                    f"P50={result['percentile_50']}, VaR={result['var_95']}")
+        logger.info(
+            f"[MonteCarlo] {symbol}: {simulations} paths done. "
+            f"P50={result['statistics']['median']}, P>start={prob_above_start:.1%}, "
+            f"P<-10%={prob_loss_10pct:.1%}"
+        )
 
     except Exception as e:
         logger.error(f"[MonteCarlo] Failed for {symbol}: {e}")

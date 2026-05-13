@@ -92,20 +92,19 @@ class QuantService:
     async def initialize(self):
         """Subscribe to Signal Bus after event loop is running."""
         from backend.backend.bus.bus import bus, BusEvent
-        # subscribe() is synchronous — no await needed
-        bus.subscribe(BusEvent.SENTIMENT_BEARISH, self._handle_sentiment)
-        bus.subscribe(BusEvent.SENTIMENT_BULLISH, self._handle_sentiment)
+        bus.subscribe(BusEvent.SENTIMENT_BEARISH, self._on_bearish)
+        bus.subscribe(BusEvent.SENTIMENT_BULLISH, self._on_bullish)
         logger.info("QuantService initialised — listening on sentiment bus channels.")
 
-    def _handle_sentiment(self, data: Dict[str, Any]):
-        symbol    = data.get("symbol", "")
-        sentiment = data.get("sentiment", "")
-        if sentiment == "Bearish":
+    def _on_bearish(self, data: Dict[str, Any]):
+        symbol = data.get("symbol", "")
+        if symbol:
             self.sentiment_adjustments[symbol] = -0.15
-        elif sentiment == "Bullish":
+
+    def _on_bullish(self, data: Dict[str, Any]):
+        symbol = data.get("symbol", "")
+        if symbol:
             self.sentiment_adjustments[symbol] = 0.05
-        else:
-            self.sentiment_adjustments[symbol] = 0.0
 
     # ── Real Price History ─────────────────────────────────────────
     async def _get_price_history(self, symbol: str, days: int = 60) -> List[float]:
@@ -136,8 +135,8 @@ class QuantService:
         """
         from backend.backend.bus.bus import bus, BusEvent
 
-        prices = await self._get_price_history(symbol, days=60)
-        if len(prices) < 20:
+        prices = await self._get_price_history(symbol, days=90)
+        if len(prices) < 5:
             return {
                 "error":  "Insufficient price history",
                 "symbol": symbol,

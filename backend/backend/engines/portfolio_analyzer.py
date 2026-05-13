@@ -213,7 +213,7 @@ def portfolio_summary(
         pnl_pct = ((h["current_price"] / h["buy_price"]) - 1) * 100 if h["buy_price"] > 0 else 0
 
         positions.append({
-            "ticker": h["ticker"],
+            "ticker": h.get("ticker") or h.get("symbol", "UNKNOWN"),
             "quantity": h["quantity"],
             "invested": round(invested, 2),
             "current_value": round(current, 2),
@@ -236,7 +236,7 @@ def portfolio_summary(
 
     # Add sector exposure
     sector_holdings = [
-        {"ticker": h["ticker"], "value": h["quantity"] * h["current_price"], "sector": h.get("sector", "Other")}
+        {"ticker": h.get("ticker") or h.get("symbol", ""), "value": h["quantity"] * h["current_price"], "sector": h.get("sector", "Other")}
         for h in holdings
     ]
     result["sector_exposure"] = sector_exposure(sector_holdings)

@@ -7,7 +7,7 @@
 import { StockDataPoint, PredictionResult } from '../../types';
 import { EnsembleWeights } from '../../types';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 export const getPredictions = async (
   symbol: string,

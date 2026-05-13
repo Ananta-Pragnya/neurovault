@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { NewsIntelligenceResponse } from "../../types";
 
-const API_BASE = 'http://localhost:8000/api/intelligence';
+const API_BASE = `${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/api/intelligence`;
 
 export const fetchNewsIntelligence = async (query: string): Promise<NewsIntelligenceResponse> => {
   try {

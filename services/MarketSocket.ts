@@ -7,7 +7,7 @@ export type MarketStatus = 'NOMINAL' | 'DEGRADED' | 'CRITICAL' | 'OFFLINE';
 
 class MarketSocket {
   private ws: WebSocket | null = null;
-  private url: string = "ws://localhost:8000/ws/data-hub";
+  private url: string = `${(import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace('https://', 'wss://').replace('http://', 'ws://')}/ws/data-hub`;
   private reconnectDelay: number = 1000;
   private maxDelay: number = 32000;
   private handlers: Set<(data: any) => void> = new Set();

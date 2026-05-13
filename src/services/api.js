@@ -76,7 +76,9 @@ export const fetchExpirations = async (ticker) => {
 export const fetchNews = async (ticker) => {
   try {
     const res = await fetch(`${API_BASE}/api/news/${ticker}`);
-    return await handleResponse('fetchNews', res);
+    const data = await handleResponse('fetchNews', res);
+    // Backend returns {articles, sentiment, score, count} — extract the array
+    return data?.articles || null;
   } catch (e) {
     console.error('[API ERROR] fetchNews:', e);
     return null;
@@ -85,8 +87,15 @@ export const fetchNews = async (ticker) => {
 
 export const fetchSentiment = async (ticker) => {
   try {
-    const res = await fetch(`${API_BASE}/api/sentiment/${ticker}`);
-    return await handleResponse('fetchSentiment', res);
+    // Sentiment is embedded in the news response — reuse the same endpoint
+    const res = await fetch(`${API_BASE}/api/news/${ticker}`);
+    const data = await handleResponse('fetchSentiment', res);
+    if (!data) return null;
+    return {
+      sentiment: (data.score + 1) / 2,                 // normalize -1..1 → 0..1 (0.5 = neutral)
+      buzz: Math.min(1, Math.abs(data.score) + 0.2),   // rough social buzz proxy
+      label: data.sentiment,                            // 'bullish'|'bearish'|'neutral'
+    };
   } catch (e) {
     console.error('[API ERROR] fetchSentiment:', e);
     return null;
@@ -117,27 +126,14 @@ export const fetchAISignal = async (marketData) => {
   }
 };
 
-export const fetchNewsSummary = async (ticker, headlines) => {
-  try {
-    const res = await fetch(`${API_BASE}/api/news/summary`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticker, headlines }),
-    });
-    return await handleResponse('fetchNewsSummary', res);
-  } catch (e) {
-    console.error('[API ERROR] fetchNewsSummary:', e);
-    return null;
-  }
+export const fetchNewsSummary = async (_ticker, _headlines) => {
+  // No dedicated summary endpoint — AI summary comes from the intelligence endpoint
+  return null;
 };
 
-export const runSimulation = async (ticker, current_price, volatility, days = 30) => {
+export const runSimulation = async ({ ticker, initial_price, volatility, time_horizon = 30 } = {}) => {
   try {
-    const res = await fetch(`${API_BASE}/api/simulate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticker, current_price, volatility, days }),
-    });
+    const res = await fetch(`${API_BASE}/api/simulate/${encodeURIComponent(ticker)}`, { method: 'POST' });
     return await handleResponse('runSimulation', res);
   } catch (e) {
     console.error('[API ERROR] runSimulation:', e);

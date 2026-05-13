@@ -212,7 +212,7 @@ const App: React.FC = () => {
                         </svg>
                       </div>
                       <span className="text-[10px] text-zinc-600 font-mono mt-1 block overflow-hidden text-ellipsis whitespace-nowrap">
-                        {new URL(source.uri).hostname}
+                        {(() => { try { return new URL(source.uri).hostname; } catch { return source.uri; } })()}
                       </span>
                     </a>
                   ))}

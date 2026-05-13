@@ -213,7 +213,7 @@ export const useTradingStore = create<TradingState>((set, get) => ({
 
       while (Date.now() - start < MAX_WAIT_MS) {
          try {
-            const res = await fetch(`http://localhost:8000/api/monte-carlo/${ticker}`);
+            const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/api/monte-carlo/${ticker}`);
             const data = await res.json();
             
             if (data.status === 'ready' && data.data) {
@@ -248,46 +248,67 @@ export const useTradingStore = create<TradingState>((set, get) => ({
     const { holdings } = get();
     set(s => ({ loading: { ...s.loading, portfolio: true } }));
     try {
-      const res = await fetch('http://localhost:8000/api/portfolio/analyze', {
+      // Map holdings to backend Pydantic model shape
+      const backendHoldings = holdings.map((h: any) => ({
+        symbol:   h.ticker || h.symbol,
+        quantity: h.quantity,
+        avg_cost: h.avg_cost || h.buy_price || 0,
+      }));
+
+      const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/api/portfolio/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ holdings })
+        body: JSON.stringify({ holdings: backendHoldings })
       });
       const data = await res.json();
-      
-      // Need structured mock data to satisfy UI rendering requirements
+
+      const risk      = data.risk_metrics || {};
+      const sharpeData = data.sharpe || {};
+
+      const positions = (data.positions || []).map((p: any) => ({
+        ticker:        p.ticker || p.symbol,
+        quantity:      p.quantity,
+        current_value: p.current_value || 0,
+        pnl:           p.pnl || 0,
+        pnl_pct:       p.pnl_pct || 0,
+        weight_pct:    p.weight_pct || 0,
+      }));
+
+      const sectorData = (data.sector_exposure?.sectors || []).map((s: any) => ({
+        sector:     s.sector,
+        weight_pct: s.weight_pct,
+        value:      s.value,
+      }));
+
+      const divScore = Math.min(100, positions.length * 15 + sectorData.length * 10);
+
       const portfolioData = {
         overview: {
-          total_value: 1250000,
-          total_pnl: 45000,
-          total_pnl_pct: 3.6
+          total_value:    data.total_current_value || 0,
+          total_pnl:      data.total_pnl || 0,
+          total_pnl_pct:  data.total_pnl_pct || 0,
         },
-        risk: { risk_class: 'MEDIUM', var_95: { var_dollar: data.var || 50000 } },
-        sharpe: { sharpe: data.sharpe_ratio || 1.2, quality: 'GOOD' },
-        correlation: { diversification_score: 85 },
+        risk: {
+          risk_class: risk.risk_class || 'MEDIUM',
+          var_95:     { var_dollar: typeof risk.var_95 === 'number' ? risk.var_95 : (risk.var_95?.var_dollar || 0) },
+        },
+        sharpe: {
+          sharpe:  sharpeData.sharpe ?? risk.sharpe_ratio ?? 1.2,
+          quality: sharpeData.quality || 'GOOD',
+        },
+        correlation: { diversification_score: divScore },
         sector_exposure: {
-          sectors: [
-            { sector: 'Technology', weight_pct: 45, value: 562500 },
-            { sector: 'Finance', weight_pct: 25, value: 312500 },
-            { sector: 'Healthcare', weight_pct: 20, value: 250000 },
-            { sector: 'Energy', weight_pct: 10, value: 125000 },
-          ],
-          concentration_risk: 'LOW'
+          sectors:            sectorData,
+          concentration_risk: data.sector_exposure?.concentration_risk || 'LOW',
         },
-        positions: holdings.map(h => ({
-          ...h,
-          current_value: h.quantity * 150, // mock price
-          pnl: 1500,
-          pnl_pct: 2.5,
-          weight_pct: 100 / holdings.length
-        })),
-        ai_advice: 'Consider trimming Technology exposure to reduce sector concentration risk. Reallocating 5% to Consumer Staples could improve the Sharpe ratio based on recent volatility regimes.'
+        positions,
+        ai_advice: data.ai_advice || `Portfolio holds ${positions.length} position${positions.length !== 1 ? 's' : ''} across ${sectorData.length} sector${sectorData.length !== 1 ? 's' : ''}. Review position sizing for optimal risk-adjusted returns.`,
       };
 
-      set(s => ({ 
-        portfolio: portfolioData, 
-        loading: { ...s.loading, portfolio: false },
-        errors: { ...s.errors, portfolio: !data } 
+      set(s => ({
+        portfolio: portfolioData,
+        loading:   { ...s.loading, portfolio: false },
+        errors:    { ...s.errors,  portfolio: false },
       }));
     } catch (e) {
       set(s => ({ loading: { ...s.loading, portfolio: false }, errors: { ...s.errors, portfolio: true } }));

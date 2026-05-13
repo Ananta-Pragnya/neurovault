@@ -31,7 +31,7 @@ import { StockDataPoint, PredictionResult, EnsembleWeights, ModelType } from '..
 import { SYMBOLS, DEFAULT_WEIGHTS, INDICATOR_COLORS } from '../../constants.tsx';
 import { calculateTechnicalIndicators } from '../../services/quant/indicatorService';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 // ── Types ─────────────────────────────────────────────────────────
 interface ForecastResult {
@@ -135,19 +135,19 @@ const StrategyPanel: React.FC<{ symbol: string; lastClose: number }> = ({ symbol
     setLoading(true);
     setError(null);
     try {
-      let url = '';
-      if (strategy === 'covered-call') {
-        const strike  = (lastClose * 1.05).toFixed(2);
-        const premium = (lastClose * 0.015).toFixed(2);
-        url = `${API_BASE}/api/strategy/covered-call?symbol=${symbol}&stock_price=${lastClose}&strike=${strike}&premium=${premium}`;
-      } else if (strategy === 'iron-condor') {
-        const w = (lastClose * 0.03).toFixed(2);
-        url = `${API_BASE}/api/strategy/iron-condor?symbol=${symbol}&put_long=${(lastClose * 0.92).toFixed(2)}&put_short=${(lastClose * 0.95).toFixed(2)}&call_short=${(lastClose * 1.05).toFixed(2)}&call_long=${(lastClose * 1.08).toFixed(2)}&net_credit=${(lastClose * 0.02).toFixed(2)}`;
+      const endpoint = strategy === 'straddle' ? 'iron-condor' : strategy;
+      const body: Record<string, any> = { symbol, shares: 100 };
+      if (strategy === 'iron-condor' || strategy === 'straddle') {
+        body.width       = parseFloat((lastClose * 0.03).toFixed(2));
+        body.expiry_days = 30;
       } else {
-        const premium = (lastClose * 0.025).toFixed(2);
-        url = `${API_BASE}/api/strategy/straddle?symbol=${symbol}&strike=${lastClose.toFixed(2)}&call_premium=${premium}&put_premium=${premium}`;
+        body.target_premium = parseFloat((lastClose * 0.015).toFixed(2));
       }
-      const res = await fetch(url);
+      const res = await fetch(`${API_BASE}/api/strategy/${endpoint}`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
       if (!res.ok) throw new Error(await res.text());
       setResult(await res.json());
     } catch (e: any) {
@@ -306,7 +306,8 @@ const QuantPulseTerminal: React.FC = () => {
   // Live WebSocket tick updates
   useEffect(() => {
     setWsStatus('connecting');
-    const ws = new WebSocket(`ws://localhost:8000/ws/data-hub`);
+    const wsBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace('https://', 'wss://').replace('http://', 'ws://');
+    const ws = new WebSocket(`${wsBase}/ws/data-hub`);
 
     ws.onopen  = () => setWsStatus('live');
     ws.onerror = () => setWsStatus('offline');
