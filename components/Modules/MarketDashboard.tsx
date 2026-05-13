@@ -150,7 +150,7 @@ export const MarketDashboard: React.FC = () => {
             <div className="absolute inset-0 z-10 bg-slate-950/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl border border-red-500/20 p-10">
               <BarChart3 size={40} className="text-red-500/40 mb-2" />
               <p className="text-red-400 font-bold uppercase tracking-widest text-sm">Market Data Unavailable</p>
-              <p className="text-slate-500 text-xs mt-1">Connectivity issues with Polygon.io services</p>
+              <p className="text-slate-500 text-xs mt-1">Connecting to Alpaca data feed...</p>
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
