@@ -355,7 +355,7 @@ const QuantPulseTerminal: React.FC = () => {
   ];
 
   // Shape legacy PredictionResult for sections that expect it
-  const legacyPrediction: PredictionResult | null = forecast
+  const legacyPrediction: PredictionResult | null = forecast && forecast.direction
     ? {
         nextDayPrice:          forecast.price_target,
         forecast7Day:          [],
