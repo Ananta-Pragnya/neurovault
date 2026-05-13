@@ -26,21 +26,24 @@ from backend.backend.cache.cache import unified_cache
 logger = logging.getLogger(__name__)
 
 # ── API Keys (from .env — never hardcoded) ─────────────────────────
+ALPACA_KEY    = os.getenv("ALPACA_API_KEY", "")
+ALPACA_SECRET = os.getenv("ALPACA_SECRET_KEY", "")
+
 def _headers() -> dict:
     return {
         "APCA-API-KEY-ID":     os.getenv("ALPACA_API_KEY", ""),
         "APCA-API-SECRET-KEY": os.getenv("ALPACA_SECRET_KEY", ""),
     }
 
-# ── Sandbox Endpoints ──────────────────────────────────────────────
-STOCK_SNAPSHOT_URL  = "https://data.sandbox.alpaca.markets/v2/stocks/snapshots"
-CRYPTO_SNAPSHOT_URL = "https://data.sandbox.alpaca.markets/v1beta3/crypto/us/snapshots"
-BARS_URL            = "https://data.sandbox.alpaca.markets/v2/stocks/bars"
+# ── Market Data Endpoints (paper trading uses live data feed) ──────
+STOCK_SNAPSHOT_URL  = "https://data.alpaca.markets/v2/stocks/snapshots"
+CRYPTO_SNAPSHOT_URL = "https://data.alpaca.markets/v1beta3/crypto/us/snapshots"
+BARS_URL            = "https://data.alpaca.markets/v2/stocks/bars"
 PAPER_API_URL       = "https://paper-api.alpaca.markets/v2"
 
 # ── WebSocket Stream URLs ──────────────────────────────────────────
-STOCK_STREAM_URL  = "wss://stream.data.sandbox.alpaca.markets/v2/iex"
-CRYPTO_STREAM_URL = "wss://stream.data.sandbox.alpaca.markets/v1beta3/crypto/us"
+STOCK_STREAM_URL  = "wss://stream.data.alpaca.markets/v2/iex"
+CRYPTO_STREAM_URL = "wss://stream.data.alpaca.markets/v1beta3/crypto/us"
 
 # ── Symbol Mappings ────────────────────────────────────────────────
 CRYPTO_SYMBOL_MAP = {
