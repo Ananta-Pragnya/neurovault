@@ -79,9 +79,44 @@ const REGIME_CONFIG = {
   },
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+
 export const MarketPulseDashboard: React.FC = () => {
   const [pulseData, setPulseData] = useState<Record<string, MarketPulse>>({});
   const [flashingSymbols, setFlashingSymbols] = useState<Set<string>>(new Set());
+
+  // Seed initial state from REST so cards show immediately on mount
+  useEffect(() => {
+    fetch(`${API_BASE}/api/pulse/state`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.state) return;
+        const seeded: Record<string, MarketPulse> = {};
+        for (const [sym, s] of Object.entries(data.state as Record<string, any>)) {
+          seeded[sym] = {
+            symbol: sym,
+            timestamp: data.timestamp,
+            last_price: s.last_price ?? 0,
+            regime: s.regime ?? 'unknown',
+            regime_confidence: s.confidence ?? 0,
+            realized_vol_instant: 0,
+            realized_vol_hourly: 0,
+            realized_vol_daily: s.realized_vol_daily ?? 0,
+            vol_of_vol: 0,
+            bid_ask_spread_bps: 0,
+            tick_velocity: 0,
+            volume_surge_ratio: 1,
+            regime_changed: false,
+            regime_age_seconds: 0,
+            tail_risk_score: s.tail_risk_score ?? 0,
+            liquidity_stress: 0,
+            requires_attention: s.requires_attention ?? false,
+          };
+        }
+        setPulseData(prev => ({ ...seeded, ...prev }));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const wsBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace('https://', 'wss://').replace('http://', 'ws://');

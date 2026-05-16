@@ -10,6 +10,7 @@ import { PortfolioTracker } from './Modules/PortfolioTracker';
 import { SimulationLab } from './Modules/SimulationLab';
 import MarketIntelTerminal from './MarketIntel/MarketIntelTerminal';
 import QuantPulseTerminal from './QuantPulse/QuantPulseTerminal';
+import { EdgeScanner } from './Modules/EdgeScanner';
 import { TabErrorBoundary } from './ErrorBoundary';
 import { Loader2, MonitorOff, ShieldCheck, Zap, Activity, Globe } from 'lucide-react';
 import { marketSocket, MarketStatus } from '../services/MarketSocket';
@@ -76,6 +77,7 @@ export const InstitutionalTerminal: React.FC = () => {
             case 'options': return renderWrappedTab("Options Intel", <OptionsIntel />);
             case 'portfolio': return renderWrappedTab("Portfolio Tracker", <PortfolioTracker />);
             case 'lab': return renderWrappedTab("Simulation Lab", <SimulationLab />);
+            case 'edge': return renderWrappedTab("Edge Scanner", <EdgeScanner />);
             default: return <Navigate to="/terminal/intel" />;
         }
     };

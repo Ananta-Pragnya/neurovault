@@ -12,7 +12,8 @@ const tabs = [
     { id: 'signals', label: 'AI Signals', path: '/terminal/signals' },
     { id: 'options', label: 'Options Intel', path: '/terminal/options' },
     { id: 'portfolio', label: 'Portfolio', path: '/terminal/portfolio' },
-    { id: 'lab', label: 'Simulation Lab', path: '/terminal/lab' }
+    { id: 'lab', label: 'Simulation Lab', path: '/terminal/lab' },
+    { id: 'edge', label: 'Edge Scanner', path: '/terminal/edge' },
 ];
 
 export function InstitutionalNav({ user, logout }: { user: any; logout: () => void }) {
