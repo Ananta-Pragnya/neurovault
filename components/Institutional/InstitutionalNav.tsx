@@ -1,33 +1,34 @@
-// NEUROVAULT — Meridian Navigation Bar
-// Precision terminal aesthetic: IBM Plex Mono, electric teal, near-black
+// NEUROVAULT — Institutional Navigation
+// Gold on obsidian · Outfit · Premium terminal nav
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const tabs = [
-    { id: 'intel',      label: 'MKT INTEL',   path: '/terminal/intel'      },
-    { id: 'news-intel', label: 'DEEP INTEL',   path: '/terminal/news-intel' },
-    { id: 'forecasting',label: 'FORECAST',     path: '/terminal/forecasting'},
-    { id: 'signals',    label: 'AI SIGNALS',   path: '/terminal/signals'    },
-    { id: 'options',    label: 'OPTIONS',      path: '/terminal/options'    },
-    { id: 'portfolio',  label: 'PORTFOLIO',    path: '/terminal/portfolio'  },
-    { id: 'lab',        label: 'SIM LAB',      path: '/terminal/lab'        },
-    { id: 'edge',       label: 'EDGE',         path: '/terminal/edge'       },
+    { id: 'intel',       label: 'Market Intel',   path: '/terminal/intel'       },
+    { id: 'news-intel',  label: 'Deep Intel',     path: '/terminal/news-intel'  },
+    { id: 'forecasting', label: 'Forecasting',    path: '/terminal/forecasting' },
+    { id: 'signals',     label: 'AI Signals',     path: '/terminal/signals'     },
+    { id: 'options',     label: 'Options Intel',  path: '/terminal/options'     },
+    { id: 'portfolio',   label: 'Portfolio',      path: '/terminal/portfolio'   },
+    { id: 'lab',         label: 'Sim Lab',        path: '/terminal/lab'         },
+    { id: 'edge',        label: 'Edge',           path: '/terminal/edge'        },
 ];
 
 export function InstitutionalNav({ user, logout }: { user: any; logout: () => void }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [time, setTime] = useState('');
-    const [hovered, setHovered] = useState<string | null>(null);
 
     const activeTab = tabs.find(t => t.path === location.pathname)?.id || 'intel';
 
     useEffect(() => {
         const tick = () => {
             const now = new Date();
-            const iso = now.toISOString();
-            setTime(`${iso.slice(0, 10)} ${iso.slice(11, 19)} UTC`);
+            setTime(now.toLocaleTimeString('en-US', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+            }) + ' EST');
         };
         tick();
         const id = setInterval(tick, 1000);
@@ -41,40 +42,28 @@ export function InstitutionalNav({ user, logout }: { user: any; logout: () => vo
                 top: 0,
                 width: '100%',
                 zIndex: 50,
-                background: '#020204',
-                borderBottom: '1px solid #1C1C26',
-                fontFamily: "'IBM Plex Mono', monospace",
+                background: 'rgba(8, 12, 20, 0.92)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+                fontFamily: "'Outfit', sans-serif",
             }}
         >
-            {/* System info strip */}
+            {/* Breathing gold top stripe */}
             <div style={{
-                height: '22px',
-                background: '#0C0C10',
-                borderBottom: '1px solid #1C1C26',
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent 0%, #D4AF37 20%, #FFD966 50%, #D4AF37 80%, transparent 100%)',
+                animation: 'nvGoldBreathe 4s ease-in-out infinite',
+            }} />
+
+            <div style={{
+                maxWidth: '1600px',
+                margin: '0 auto',
+                padding: '0 20px',
+                height: '56px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 16px',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ fontSize: '8px', color: '#00E8C8', letterSpacing: '0.2em', fontWeight: 600 }}>
-                        NEUROVAULT
-                    </span>
-                    <span style={{ width: '1px', height: '10px', background: '#1C1C26', display: 'inline-block' }} />
-                    <span style={{ fontSize: '8px', color: '#505060', letterSpacing: '0.15em' }}>
-                        PRECISION INTELLIGENCE PLATFORM · v5.0A · SECURE CHANNEL
-                    </span>
-                </div>
-                <span style={{ fontSize: '8px', color: '#505060', letterSpacing: '0.1em' }}>
-                    {time}
-                </span>
-            </div>
-
-            {/* Main nav bar */}
-            <div style={{
-                height: '42px',
-                display: 'flex',
-                alignItems: 'stretch',
+                gap: '0',
             }}>
                 {/* Logo */}
                 <button
@@ -82,194 +71,222 @@ export function InstitutionalNav({ user, logout }: { user: any; logout: () => vo
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
-                        padding: '0 20px',
-                        background: 'transparent',
+                        gap: '12px',
+                        background: 'none',
                         border: 'none',
-                        borderRight: '1px solid #1C1C26',
                         cursor: 'pointer',
+                        padding: '0 20px 0 0',
+                        marginRight: '20px',
+                        borderRight: '1px solid rgba(255,255,255,0.06)',
                         flexShrink: 0,
-                        transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,232,200,0.04)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                    {/* Diamond logo mark */}
-                    <div style={{
-                        position: 'relative',
-                        width: '16px',
-                        height: '16px',
-                        flexShrink: 0,
-                    }}>
-                        <div style={{
-                            position: 'absolute',
-                            inset: '3px',
-                            border: '1px solid #00E8C8',
-                            transform: 'rotate(45deg)',
-                            boxShadow: '0 0 6px rgba(0, 232, 200, 0.4)',
-                        }} />
+                    {/* Diamond mark */}
+                    <div style={{ position: 'relative', width: '28px', height: '28px', flexShrink: 0 }}>
                         <div style={{
                             position: 'absolute',
                             inset: '6px',
-                            background: '#00E8C8',
+                            background: 'linear-gradient(135deg, #D4AF37, #FFD966)',
                             transform: 'rotate(45deg)',
-                            boxShadow: '0 0 4px rgba(0, 232, 200, 0.6)',
+                            boxShadow: '0 0 16px rgba(212, 175, 55, 0.7), 0 0 40px rgba(212, 175, 55, 0.2)',
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            inset: '2px',
+                            border: '1px solid rgba(212, 175, 55, 0.3)',
+                            transform: 'rotate(45deg)',
                         }} />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                        <span style={{
-                            fontSize: '10px',
+                    <div>
+                        <div style={{
+                            fontSize: '14px',
                             fontWeight: 700,
-                            color: '#00E8C8',
-                            letterSpacing: '0.2em',
-                            lineHeight: 1,
+                            color: '#E8ECF4',
+                            letterSpacing: '0.08em',
+                            lineHeight: 1.1,
+                            fontFamily: "'Outfit', sans-serif",
                         }}>
                             NEUROVAULT
-                        </span>
-                        <span style={{
-                            fontSize: '7px',
-                            color: '#505060',
-                            letterSpacing: '0.15em',
+                        </div>
+                        <div style={{
+                            fontSize: '8px',
+                            color: '#D4AF37',
+                            letterSpacing: '0.2em',
                             lineHeight: 1,
+                            fontFamily: "'JetBrains Mono', monospace",
                         }}>
                             INTELLIGENCE
-                        </span>
+                        </div>
                     </div>
                 </button>
 
                 {/* Tab strip */}
-                <div style={{ display: 'flex', alignItems: 'stretch', flex: 1 }}>
-                    {tabs.map((tab, i) => {
+                <div style={{ display: 'flex', alignItems: 'center', flex: 1, height: '100%' }}>
+                    {tabs.map(tab => {
                         const isActive = activeTab === tab.id;
-                        const isHovered = hovered === tab.id && !isActive;
                         return (
                             <button
                                 key={tab.id}
                                 onClick={() => navigate(tab.path)}
-                                onMouseEnter={() => setHovered(tab.id)}
-                                onMouseLeave={() => setHovered(null)}
                                 style={{
                                     position: 'relative',
+                                    height: '100%',
                                     padding: '0 14px',
-                                    fontSize: '9px',
-                                    fontWeight: isActive ? 600 : 400,
-                                    fontFamily: "'IBM Plex Mono', monospace",
-                                    letterSpacing: '0.15em',
-                                    color: isActive ? '#00E8C8' : isHovered ? '#A8A8C0' : '#505060',
-                                    background: isActive
-                                        ? 'rgba(0, 232, 200, 0.06)'
-                                        : isHovered
-                                            ? 'rgba(255,255,255,0.02)'
-                                            : 'transparent',
+                                    background: 'transparent',
                                     border: 'none',
-                                    borderRight: i < tabs.length - 1 ? '1px solid #1C1C26' : 'none',
                                     cursor: 'pointer',
-                                    transition: 'all 0.12s',
-                                    textTransform: 'uppercase',
+                                    color: isActive ? '#F9E2AF' : 'rgba(136, 146, 164, 0.8)',
+                                    fontSize: '12px',
+                                    fontWeight: isActive ? 600 : 400,
+                                    fontFamily: "'Outfit', sans-serif",
+                                    letterSpacing: '0.02em',
+                                    transition: 'color 0.2s ease',
                                     whiteSpace: 'nowrap',
                                 }}
+                                onMouseEnter={e => {
+                                    if (!isActive) (e.currentTarget as HTMLElement).style.color = '#E2E8F0';
+                                }}
+                                onMouseLeave={e => {
+                                    if (!isActive) (e.currentTarget as HTMLElement).style.color = 'rgba(136, 146, 164, 0.8)';
+                                }}
                             >
-                                {/* Active indicator — top bar */}
-                                {isActive && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        height: '2px',
-                                        background: '#00E8C8',
-                                        boxShadow: '0 0 8px rgba(0, 232, 200, 0.7), 0 2px 12px rgba(0, 232, 200, 0.2)',
-                                    }} />
-                                )}
                                 {tab.label}
-                                {/* Active dot */}
                                 {isActive && (
-                                    <span style={{
-                                        display: 'inline-block',
-                                        marginLeft: '6px',
-                                        width: '3px',
-                                        height: '3px',
-                                        background: '#00E8C8',
-                                        borderRadius: '50%',
-                                        verticalAlign: 'middle',
-                                        boxShadow: '0 0 4px rgba(0, 232, 200, 0.8)',
-                                    }} />
+                                    <motion.div
+                                        layoutId="nvActiveTab"
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            height: '2px',
+                                            background: 'linear-gradient(90deg, #D4AF37, #FFD966, #D4AF37)',
+                                            boxShadow: '0 0 12px rgba(212, 175, 55, 0.8), 0 -2px 16px rgba(212, 175, 55, 0.2)',
+                                        }}
+                                        transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                                    />
                                 )}
                             </button>
                         );
                     })}
                 </div>
 
-                {/* User section */}
+                {/* Right: clock + user */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: '0 16px',
-                    borderLeft: '1px solid #1C1C26',
+                    gap: '16px',
+                    paddingLeft: '20px',
+                    borderLeft: '1px solid rgba(255,255,255,0.06)',
                     flexShrink: 0,
                 }}>
+                    {/* Live clock */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                    }}>
+                        <div style={{
+                            width: '5px',
+                            height: '5px',
+                            borderRadius: '50%',
+                            background: '#10B981',
+                            boxShadow: '0 0 8px rgba(16, 185, 129, 0.8)',
+                            animation: 'nvPing 1.5s ease-in-out infinite',
+                        }} />
+                        <span style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: '10px',
+                            color: 'rgba(136, 146, 164, 0.7)',
+                            letterSpacing: '0.05em',
+                        }}>
+                            {time}
+                        </span>
+                    </div>
+
                     {user ? (
                         <>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'right' }}>
-                                <span style={{ fontSize: '8px', color: '#00E8C8', letterSpacing: '0.1em', fontWeight: 600 }}>
-                                    {(user.name || 'OPERATOR').toUpperCase()}
-                                </span>
-                                <span style={{ fontSize: '7px', color: '#505060', letterSpacing: '0.1em' }}>
-                                    AUTHORIZED
-                                </span>
-                            </div>
+                            <span style={{
+                                fontSize: '11px',
+                                color: 'rgba(212, 175, 55, 0.7)',
+                                fontWeight: 500,
+                                letterSpacing: '0.02em',
+                            }}>
+                                {user.name}
+                            </span>
                             <button
                                 onClick={logout}
                                 style={{
-                                    fontSize: '8px',
-                                    color: '#505060',
-                                    fontFamily: "'IBM Plex Mono', monospace",
-                                    letterSpacing: '0.15em',
+                                    padding: '6px 14px',
+                                    border: '1px solid rgba(212, 175, 55, 0.25)',
                                     background: 'transparent',
-                                    border: '1px solid #1C1C26',
-                                    padding: '5px 12px',
+                                    color: 'rgba(212, 175, 55, 0.7)',
+                                    fontFamily: "'Outfit', sans-serif",
+                                    fontSize: '11px',
+                                    fontWeight: 500,
                                     cursor: 'pointer',
-                                    textTransform: 'uppercase',
-                                    transition: 'all 0.15s',
+                                    borderRadius: '6px',
+                                    transition: 'all 0.2s ease',
                                 }}
                                 onMouseEnter={e => {
-                                    e.currentTarget.style.borderColor = '#00E8C8';
-                                    e.currentTarget.style.color = '#00E8C8';
+                                    const el = e.currentTarget;
+                                    el.style.background = 'rgba(212, 175, 55, 0.1)';
+                                    el.style.borderColor = 'rgba(212, 175, 55, 0.5)';
+                                    el.style.color = '#D4AF37';
                                 }}
                                 onMouseLeave={e => {
-                                    e.currentTarget.style.borderColor = '#1C1C26';
-                                    e.currentTarget.style.color = '#505060';
+                                    const el = e.currentTarget;
+                                    el.style.background = 'transparent';
+                                    el.style.borderColor = 'rgba(212, 175, 55, 0.25)';
+                                    el.style.color = 'rgba(212, 175, 55, 0.7)';
                                 }}
                             >
-                                EXIT
+                                Logout
                             </button>
                         </>
                     ) : (
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate('/register')}
                             style={{
-                                fontSize: '9px',
-                                fontWeight: 600,
-                                color: '#020204',
-                                background: '#00E8C8',
-                                fontFamily: "'IBM Plex Mono', monospace",
-                                letterSpacing: '0.15em',
+                                padding: '8px 20px',
+                                background: 'linear-gradient(135deg, #D4AF37 0%, #F9E2AF 50%, #9A7B2C 100%)',
                                 border: 'none',
-                                padding: '7px 16px',
+                                color: '#000',
+                                fontFamily: "'Outfit', sans-serif",
+                                fontSize: '12px',
+                                fontWeight: 700,
                                 cursor: 'pointer',
-                                textTransform: 'uppercase',
-                                transition: 'all 0.15s',
-                                boxShadow: '0 0 12px rgba(0, 232, 200, 0.3)',
+                                borderRadius: '7px',
+                                letterSpacing: '0.04em',
+                                boxShadow: '0 0 20px rgba(212, 175, 55, 0.35)',
+                                transition: 'all 0.2s ease',
                             }}
-                            onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 232, 200, 0.5)')}
-                            onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 12px rgba(0, 232, 200, 0.3)')}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.boxShadow = '0 0 36px rgba(212, 175, 55, 0.6), 0 4px 20px rgba(212, 175, 55, 0.3)';
+                                e.currentTarget.style.transform = 'scale(1.03)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.35)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                            }}
                         >
-                            ACCESS
+                            Get Access
                         </button>
                     )}
                 </div>
             </div>
+
+            <style>{`
+                @keyframes nvGoldBreathe {
+                    0%, 100% { opacity: 0.5; }
+                    50%       { opacity: 1; }
+                }
+                @keyframes nvPing {
+                    0%   { transform: scale(1);   opacity: 1; }
+                    70%  { transform: scale(2.2); opacity: 0; }
+                    100% { transform: scale(1);   opacity: 0; }
+                }
+            `}</style>
         </nav>
     );
 }

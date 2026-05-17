@@ -1,5 +1,5 @@
 // NEUROVAULT — Live Market Pulse Dashboard
-// Meridian aesthetic: data-dense, monospaced, teal accent
+// Obsidian gold · large price hotspot · vivid regime gradients
 
 import React, { useEffect, useState } from 'react';
 
@@ -23,109 +23,242 @@ interface MarketPulse {
   requires_attention: boolean;
 }
 
-const MONO = "'IBM Plex Mono', monospace";
-
-const REGIME_CONFIG = {
+const REGIME = {
   unknown: {
-    label: 'UNKNOWN',
-    abbr: 'UNK',
-    color:  '#505060',
-    bg:     'rgba(80,80,96,0.08)',
-    border: '#2A2A3A',
-    glow:   'none',
-    bar:    '#2A2A3A',
-    icon:   '○',
-    tip:    'Insufficient data',
+    label: 'UNKNOWN', tip: 'Insufficient data',
+    primary: '#4B5563', faded: 'rgba(75,85,99,0.08)', border: 'rgba(75,85,99,0.2)',
+    glow: 'none', gradient: 'rgba(75,85,99,0.04)', icon: '○',
   },
   compressed: {
-    label: 'COMPRESSED',
-    abbr: 'CMPRS',
-    color:  '#00CC88',
-    bg:     'rgba(0,204,136,0.06)',
-    border: 'rgba(0,204,136,0.2)',
-    glow:   '0 0 12px rgba(0,204,136,0.12)',
-    bar:    '#00CC88',
-    icon:   '▼',
-    tip:    'BUY convexity',
+    label: 'COMPRESSED', tip: 'VOL LOW — BUY CONVEXITY',
+    primary: '#10B981', faded: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)',
+    glow: '0 0 24px rgba(16,185,129,0.15)', gradient: 'rgba(16,185,129,0.06)', icon: '▼',
   },
   normal: {
-    label: 'NORMAL',
-    abbr: 'NORM',
-    color:  '#4D9FFF',
-    bg:     'rgba(77,159,255,0.06)',
-    border: 'rgba(77,159,255,0.2)',
-    glow:   '0 0 12px rgba(77,159,255,0.12)',
-    bar:    '#4D9FFF',
-    icon:   '●',
-    tip:    'Selective trading',
+    label: 'NORMAL', tip: 'MEAN STATE — SELECTIVE',
+    primary: '#3B82F6', faded: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)',
+    glow: '0 0 24px rgba(59,130,246,0.15)', gradient: 'rgba(59,130,246,0.06)', icon: '●',
   },
   stressed: {
-    label: 'STRESSED',
-    abbr: 'STRS',
-    color:  '#FF8C00',
-    bg:     'rgba(255,140,0,0.06)',
-    border: 'rgba(255,140,0,0.2)',
-    glow:   '0 0 12px rgba(255,140,0,0.12)',
-    bar:    '#FF8C00',
-    icon:   '▲',
-    tip:    'SELL premium carefully',
+    label: 'STRESSED', tip: 'VOL ELEVATED — SELL PREMIUM',
+    primary: '#F59E0B', faded: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.30)',
+    glow: '0 0 28px rgba(245,158,11,0.20)', gradient: 'rgba(245,158,11,0.07)', icon: '▲',
   },
   crisis: {
-    label: 'CRISIS',
-    abbr: 'CRIS',
-    color:  '#FF3055',
-    bg:     'rgba(255,48,85,0.08)',
-    border: 'rgba(255,48,85,0.3)',
-    glow:   '0 0 16px rgba(255,48,85,0.18)',
-    bar:    '#FF3055',
-    icon:   '■',
-    tip:    'Pure defense',
+    label: 'CRISIS', tip: 'FAT TAIL EVENT — PURE DEFENSE',
+    primary: '#EF4444', faded: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)',
+    glow: '0 0 36px rgba(239,68,68,0.25)', gradient: 'rgba(239,68,68,0.09)', icon: '■',
   },
   transition: {
-    label: 'TRANSITION',
-    abbr: 'TRNS',
-    color:  '#9B6DFF',
-    bg:     'rgba(155,109,255,0.08)',
-    border: 'rgba(155,109,255,0.25)',
-    glow:   '0 0 14px rgba(155,109,255,0.15)',
-    bar:    '#9B6DFF',
-    icon:   '◆',
-    tip:    'HALT trades',
+    label: 'TRANSITION', tip: 'REGIME SHIFTING — HALT TRADES',
+    primary: '#8B5CF6', faded: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.30)',
+    glow: '0 0 30px rgba(139,92,246,0.20)', gradient: 'rgba(139,92,246,0.08)', icon: '◆',
   },
 };
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
-function ConfidenceBar({ value, color }: { value: number; color: string }) {
-  const pct = Math.min(100, Math.max(0, value * 100));
+function RegimeCard({ pulse, isFlashing }: { pulse: MarketPulse; isFlashing: boolean }) {
+  const cfg = REGIME[pulse.regime] ?? REGIME.unknown;
+  const col = isFlashing ? REGIME.transition.primary : cfg.primary;
+  const pct = Math.min(100, pulse.regime_confidence * 100);
+  const isCritical = pulse.regime === 'crisis' || (pulse.tail_risk_score > 7);
+
   return (
-    <div style={{ position: 'relative', height: '2px', background: 'rgba(255,255,255,0.06)', flex: 1 }}>
+    <div style={{
+      position: 'relative',
+      background: `linear-gradient(145deg, ${isFlashing ? REGIME.transition.gradient : cfg.gradient} 0%, rgba(8,12,20,0.95) 65%)`,
+      border: `1px solid ${isFlashing ? REGIME.transition.border : cfg.border}`,
+      borderRadius: '10px',
+      padding: '14px 14px 12px',
+      boxShadow: isFlashing ? REGIME.transition.glow : (isCritical ? cfg.glow : 'none'),
+      transition: 'box-shadow 0.4s ease, border-color 0.3s ease',
+      animation: isFlashing ? 'nvRegimeFlash 0.55s ease-in-out 4' : isCritical ? 'nvBreathe 2.5s ease-in-out infinite' : 'none',
+      overflow: 'hidden',
+    }}>
+      {/* Decorative corner accent */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: '40px',
+        height: '40px',
+        background: `linear-gradient(225deg, ${col}20 0%, transparent 60%)`,
+        borderRadius: '0 10px 0 0',
+      }} />
+
+      {/* Left regime bar */}
       <div style={{
         position: 'absolute',
         left: 0,
-        top: 0,
-        height: '100%',
-        width: `${pct}%`,
-        background: color,
-        transition: 'width 0.5s ease',
+        top: '10%',
+        bottom: '10%',
+        width: '3px',
+        background: `linear-gradient(180deg, ${col}80, ${col}, ${col}80)`,
+        borderRadius: '0 2px 2px 0',
+        boxShadow: `0 0 8px ${col}80`,
       }} />
-    </div>
-  );
-}
 
-function Metric({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '6px' }}>
-      <span style={{ fontSize: '8px', color: '#383848', letterSpacing: '0.1em', flexShrink: 0 }}>{label}</span>
-      <span style={{
-        fontSize: '9px',
-        fontWeight: warn ? 700 : 400,
-        color: warn ? '#FF3055' : '#707080',
-        letterSpacing: '0.05em',
-        textAlign: 'right',
+      {/* Header: regime label + icon */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{
+            fontSize: '11px',
+            color: col,
+            filter: isCritical ? `drop-shadow(0 0 6px ${col})` : 'none',
+            animation: (pulse.regime === 'crisis') ? 'nvPulse 1.2s ease-in-out infinite' : 'none',
+          }}>
+            {cfg.icon}
+          </span>
+          <span style={{
+            fontSize: '9px',
+            fontWeight: 700,
+            color: col,
+            letterSpacing: '0.15em',
+            fontFamily: "'JetBrains Mono', monospace",
+            textTransform: 'uppercase',
+          }}>
+            {cfg.label}
+          </span>
+        </div>
+        {/* Attention badge */}
+        {pulse.requires_attention && (
+          <span style={{
+            fontSize: '7px',
+            color: '#EF4444',
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '0.15em',
+            fontWeight: 700,
+            animation: 'nvPulse 0.8s ease-in-out infinite',
+          }}>
+            ⚠
+          </span>
+        )}
+      </div>
+
+      {/* ★ EYE HOTSPOT: Ticker + Large Price ★ */}
+      <div style={{ marginBottom: '8px' }}>
+        <div style={{
+          fontSize: '10px',
+          fontWeight: 500,
+          color: 'rgba(136,146,164,0.7)',
+          letterSpacing: '0.12em',
+          fontFamily: "'JetBrains Mono', monospace",
+          marginBottom: '2px',
+        }}>
+          {pulse.symbol}
+        </div>
+        <div style={{
+          fontSize: '22px',
+          fontWeight: 700,
+          color: '#F1F5F9',
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: '-0.02em',
+          lineHeight: 1,
+          textShadow: isCritical ? `0 0 20px ${col}40` : 'none',
+        }}>
+          ${pulse.last_price.toFixed(2)}
+        </div>
+      </div>
+
+      {/* Confidence bar */}
+      <div style={{ marginBottom: '8px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '4px',
+        }}>
+          <span style={{ fontSize: '7px', color: 'rgba(75,85,99,0.8)', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.1em' }}>
+            CONFIDENCE
+          </span>
+          <span style={{ fontSize: '8px', color: col, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>
+            {pct.toFixed(0)}%
+          </span>
+        </div>
+        <div style={{ height: '3px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${pct}%`,
+            background: `linear-gradient(90deg, ${col}70, ${col})`,
+            boxShadow: `0 0 6px ${col}60`,
+            borderRadius: '2px',
+            transition: 'width 0.8s ease',
+          }} />
+        </div>
+      </div>
+
+      {/* Action tip */}
+      <div style={{
+        fontSize: '7px',
+        color: col,
+        fontFamily: "'JetBrains Mono', monospace",
+        letterSpacing: '0.12em',
+        fontWeight: 600,
+        marginBottom: '8px',
+        opacity: 0.8,
       }}>
-        {value}
-      </span>
+        {cfg.tip}
+      </div>
+
+      {/* Metric grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '4px 8px',
+        borderTop: '1px solid rgba(255,255,255,0.04)',
+        paddingTop: '8px',
+      }}>
+        {[
+          { label: 'RV·D',  val: `${(pulse.realized_vol_daily * 100).toFixed(1)}%`, warn: pulse.realized_vol_daily > 0.25 },
+          { label: 'VoV',   val: pulse.vol_of_vol.toFixed(3),                        warn: pulse.vol_of_vol > 0.08 },
+          { label: 'TAIL',  val: `${pulse.tail_risk_score.toFixed(1)}/10`,           warn: pulse.tail_risk_score > 7 },
+          { label: 'VOL×',  val: `${pulse.volume_surge_ratio.toFixed(1)}×`,          warn: pulse.volume_surge_ratio > 2 },
+        ].map(({ label, val, warn }) => (
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px' }}>
+            <span style={{
+              fontSize: '7px',
+              color: 'rgba(75,85,99,0.6)',
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: '0.08em',
+              flexShrink: 0,
+            }}>
+              {label}
+            </span>
+            <span style={{
+              fontSize: '9px',
+              fontWeight: warn ? 700 : 400,
+              color: warn ? '#EF4444' : 'rgba(136,146,164,0.8)',
+              fontFamily: "'JetBrains Mono', monospace",
+              textShadow: warn ? '0 0 8px rgba(239,68,68,0.5)' : 'none',
+            }}>
+              {val}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Regime change banner */}
+      {isFlashing && (
+        <div style={{
+          marginTop: '8px',
+          padding: '4px 8px',
+          background: 'rgba(139,92,246,0.15)',
+          border: '1px solid rgba(139,92,246,0.3)',
+          borderRadius: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
+          fontSize: '7px',
+          color: '#8B5CF6',
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: '0.12em',
+          fontWeight: 700,
+        }}>
+          <span style={{ animation: 'nvPulse 0.6s ease-in-out infinite' }}>◆</span>
+          REGIME CHANGED
+        </div>
+      )}
     </div>
   );
 }
@@ -136,10 +269,9 @@ export const MarketPulseDashboard: React.FC = () => {
   const [time, setTime] = useState('');
 
   useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
-    };
+    const tick = () => setTime(new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    }));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
@@ -153,22 +285,14 @@ export const MarketPulseDashboard: React.FC = () => {
         const seeded: Record<string, MarketPulse> = {};
         for (const [sym, s] of Object.entries(data.state as Record<string, any>)) {
           seeded[sym] = {
-            symbol: sym,
-            timestamp: data.timestamp,
-            last_price: s.last_price ?? 0,
-            regime: s.regime ?? 'unknown',
+            symbol: sym, timestamp: data.timestamp,
+            last_price: s.last_price ?? 0, regime: s.regime ?? 'unknown',
             regime_confidence: s.confidence ?? 0,
-            realized_vol_instant: 0,
-            realized_vol_hourly: 0,
+            realized_vol_instant: 0, realized_vol_hourly: 0,
             realized_vol_daily: s.realized_vol_daily ?? 0,
-            vol_of_vol: 0,
-            bid_ask_spread_bps: 0,
-            tick_velocity: 0,
-            volume_surge_ratio: 1,
-            regime_changed: false,
-            regime_age_seconds: 0,
-            tail_risk_score: s.tail_risk_score ?? 0,
-            liquidity_stress: 0,
+            vol_of_vol: 0, bid_ask_spread_bps: 0, tick_velocity: 0,
+            volume_surge_ratio: 1, regime_changed: false, regime_age_seconds: 0,
+            tail_risk_score: s.tail_risk_score ?? 0, liquidity_stress: 0,
             requires_attention: s.requires_attention ?? false,
           };
         }
@@ -178,7 +302,7 @@ export const MarketPulseDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const wsBase = (API_BASE).replace('https://', 'wss://').replace('http://', 'ws://');
+    const wsBase = API_BASE.replace('https://', 'wss://').replace('http://', 'ws://');
     const socket = new WebSocket(`${wsBase}/ws/data-hub`);
 
     socket.onmessage = (event) => {
@@ -189,13 +313,11 @@ export const MarketPulseDashboard: React.FC = () => {
           setPulseData(prev => ({ ...prev, [pulse.symbol]: pulse }));
           if (pulse.regime_changed) {
             setFlashingSymbols(prev => new Set(prev).add(pulse.symbol));
-            setTimeout(() => {
-              setFlashingSymbols(prev => {
-                const next = new Set(prev);
-                next.delete(pulse.symbol);
-                return next;
-              });
-            }, 2500);
+            setTimeout(() => setFlashingSymbols(prev => {
+              const next = new Set(prev);
+              next.delete(pulse.symbol);
+              return next;
+            }), 2500);
           }
         }
       } catch { /* ignore */ }
@@ -209,23 +331,20 @@ export const MarketPulseDashboard: React.FC = () => {
   if (symbols.length === 0) {
     return (
       <div style={{
-        padding: '12px 16px',
-        marginBottom: '0',
-        background: '#0C0C10',
-        borderBottom: '1px solid #1C1C26',
+        padding: '16px 20px',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
-        fontFamily: MONO,
+        gap: '10px',
+        fontFamily: "'JetBrains Mono', monospace",
       }}>
         <div style={{
-          width: '6px',
-          height: '6px',
-          borderRadius: '50%',
-          background: '#FF8C00',
-          animation: 'nvPulse 1.5s ease-in-out infinite',
+          width: '7px', height: '7px', borderRadius: '50%',
+          background: '#F59E0B',
+          boxShadow: '0 0 10px rgba(245,158,11,0.7)',
+          animation: 'nvPulse 1.2s ease-in-out infinite',
         }} />
-        <span style={{ fontSize: '8px', color: '#505060', letterSpacing: '0.2em' }}>
+        <span style={{ fontSize: '10px', color: 'rgba(75,85,99,0.8)', letterSpacing: '0.12em' }}>
           CONNECTING TO MARKET PULSE STREAM...
         </span>
         <style>{`@keyframes nvPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
@@ -233,7 +352,7 @@ export const MarketPulseDashboard: React.FC = () => {
     );
   }
 
-  // Count regimes for summary
+  // Regime count summary
   const regimeCounts: Record<string, number> = {};
   symbols.forEach(s => {
     const r = pulseData[s].regime;
@@ -242,205 +361,109 @@ export const MarketPulseDashboard: React.FC = () => {
 
   return (
     <div style={{
-      background: '#080809',
-      borderBottom: '1px solid #1C1C26',
-      fontFamily: MONO,
+      borderBottom: '1px solid rgba(255,255,255,0.05)',
+      fontFamily: "'Outfit', sans-serif",
+      padding: '16px 20px',
     }}>
       {/* Section header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '8px 16px',
-        borderBottom: '1px solid #1C1C26',
+        marginBottom: '14px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-            <div style={{ width: '2px', height: '10px', background: '#00E8C8', boxShadow: '0 0 6px rgba(0,232,200,0.6)' }} />
-            <div style={{ width: '2px', height: '10px', background: 'rgba(0,232,200,0.3)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Gold bar accent */}
+          <div style={{ display: 'flex', gap: '3px' }}>
+            <div style={{
+              width: '3px', height: '16px',
+              background: 'linear-gradient(180deg, #FFD966, #D4AF37)',
+              boxShadow: '0 0 8px rgba(212,175,55,0.6)',
+              borderRadius: '1px',
+            }} />
+            <div style={{
+              width: '3px', height: '16px',
+              background: 'rgba(212,175,55,0.25)',
+              borderRadius: '1px',
+            }} />
           </div>
-          <span style={{ fontSize: '8px', fontWeight: 600, color: '#A0A0B8', letterSpacing: '0.2em' }}>
-            LIVE MARKET PULSE
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 600,
+            color: '#E2E8F0',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}>
+            Live Market Pulse
           </span>
-          <span style={{ fontSize: '7px', color: '#383848', letterSpacing: '0.15em' }}>
-            REAL-TIME REGIME DETECTION · {symbols.length} INSTRUMENTS
+          <span style={{
+            fontSize: '9px',
+            color: 'rgba(75,85,99,0.7)',
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '0.1em',
+          }}>
+            {symbols.length} instruments · real-time regime detection
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Regime summary pills */}
+
+        {/* Summary + clock */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {Object.entries(regimeCounts).map(([regime, count]) => {
-            const cfg = REGIME_CONFIG[regime as keyof typeof REGIME_CONFIG] ?? REGIME_CONFIG.unknown;
+            const cfg = REGIME[regime as keyof typeof REGIME] ?? REGIME.unknown;
             return (
-              <div key={regime} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '7px',
-                color: cfg.color,
-                letterSpacing: '0.12em',
-              }}>
-                <span>{cfg.icon}</span>
-                <span style={{ color: '#383848' }}>{cfg.abbr}</span>
-                <span style={{ fontWeight: 700 }}>{count}</span>
+              <div key={regime} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ fontSize: '9px', color: cfg.primary }}>{cfg.icon}</span>
+                <span style={{ fontSize: '9px', color: 'rgba(75,85,99,0.6)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {cfg.label}
+                </span>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  color: cfg.primary,
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}>
+                  {count}
+                </span>
               </div>
             );
           })}
-          <div style={{ width: '1px', height: '10px', background: '#1C1C26' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div style={{
-              width: '4px', height: '4px', borderRadius: '50%',
-              background: '#00E8C8',
+              width: '5px', height: '5px', borderRadius: '50%',
+              background: '#10B981',
+              boxShadow: '0 0 8px rgba(16,185,129,0.8)',
               animation: 'nvPulse 2s ease-in-out infinite',
             }} />
-            <span style={{ fontSize: '7px', color: '#505060', letterSpacing: '0.1em' }}>{time}</span>
+            <span style={{
+              fontSize: '10px',
+              color: 'rgba(75,85,99,0.6)',
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              {time}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Pulse cards grid */}
+      {/* Cards grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-        gap: '1px',
-        background: '#1C1C26',
-        borderBottom: '1px solid #1C1C26',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
+        gap: '10px',
       }}>
-        {symbols.map(symbol => {
-          const pulse = pulseData[symbol];
-          const cfg = REGIME_CONFIG[pulse.regime] ?? REGIME_CONFIG.unknown;
-          const isFlashing = flashingSymbols.has(symbol);
-          const needsAttention = pulse.requires_attention;
-
-          return (
-            <div
-              key={symbol}
-              style={{
-                background: isFlashing ? 'rgba(155,109,255,0.08)' : cfg.bg,
-                padding: '10px 12px',
-                position: 'relative',
-                transition: 'background 0.3s ease',
-                boxShadow: isFlashing ? '0 0 20px rgba(155,109,255,0.15) inset' : cfg.glow,
-                outline: isFlashing ? '1px solid rgba(155,109,255,0.4)' : 'none',
-                animation: isFlashing ? 'nvRegimeFlash 0.5s ease-in-out 3' : 'none',
-              }}
-            >
-              {/* Left regime color bar */}
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: '2px',
-                background: isFlashing ? '#9B6DFF' : cfg.bar,
-                boxShadow: isFlashing ? '0 0 8px rgba(155,109,255,0.6)' : `0 0 6px ${cfg.bar}80`,
-              }} />
-
-              {/* Header row: ticker + price */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <div>
-                  <div style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: isFlashing ? '#9B6DFF' : cfg.color,
-                    letterSpacing: '0.05em',
-                    lineHeight: 1,
-                  }}>
-                    {symbol}
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    marginTop: '3px',
-                  }}>
-                    <span style={{ fontSize: '8px', color: cfg.color, opacity: 0.7 }}>{cfg.icon}</span>
-                    <span style={{
-                      fontSize: '7px',
-                      color: isFlashing ? '#9B6DFF' : cfg.color,
-                      letterSpacing: '0.15em',
-                      fontWeight: 600,
-                    }}>
-                      {cfg.abbr}
-                    </span>
-                    <span style={{ fontSize: '7px', color: '#383848', letterSpacing: '0.08em' }}>
-                      {(pulse.regime_confidence * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: '#A0A0B8',
-                  letterSpacing: '0.02em',
-                  textAlign: 'right',
-                  lineHeight: 1,
-                }}>
-                  ${pulse.last_price.toFixed(2)}
-                </div>
-              </div>
-
-              {/* Confidence bar */}
-              <ConfidenceBar value={pulse.regime_confidence} color={isFlashing ? '#9B6DFF' : cfg.bar} />
-
-              {/* Strategy tip */}
-              <div style={{ fontSize: '7px', color: '#383848', letterSpacing: '0.1em', marginTop: '4px', marginBottom: '6px' }}>
-                {cfg.tip}
-              </div>
-
-              {/* Metrics */}
-              <div style={{
-                borderTop: '1px solid rgba(255,255,255,0.04)',
-                paddingTop: '6px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '3px',
-              }}>
-                <Metric label="RV·D" value={`${(pulse.realized_vol_daily * 100).toFixed(1)}%`} warn={pulse.realized_vol_daily > 0.25} />
-                <Metric label="VoV" value={pulse.vol_of_vol.toFixed(3)} warn={pulse.vol_of_vol > 0.08} />
-                <Metric label="TAIL" value={`${pulse.tail_risk_score.toFixed(1)}/10`} warn={pulse.tail_risk_score > 7} />
-                <Metric label="VOL·X" value={`${pulse.volume_surge_ratio.toFixed(1)}×`} warn={pulse.volume_surge_ratio > 2} />
-              </div>
-
-              {/* Alert badges */}
-              {(needsAttention || isFlashing) && (
-                <div style={{
-                  borderTop: '1px solid rgba(255,255,255,0.04)',
-                  paddingTop: '5px',
-                  marginTop: '5px',
-                  display: 'flex',
-                  gap: '6px',
-                }}>
-                  {needsAttention && (
-                    <span style={{
-                      fontSize: '7px',
-                      color: '#FF3055',
-                      letterSpacing: '0.15em',
-                      fontWeight: 600,
-                      animation: 'nvPulse 1s ease-in-out infinite',
-                    }}>
-                      ⚠ ATTN
-                    </span>
-                  )}
-                  {isFlashing && (
-                    <span style={{
-                      fontSize: '7px',
-                      color: '#9B6DFF',
-                      letterSpacing: '0.15em',
-                      fontWeight: 600,
-                    }}>
-                      ◆ REGIME SHIFT
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {symbols.map(symbol => (
+          <RegimeCard
+            key={symbol}
+            pulse={pulseData[symbol]}
+            isFlashing={flashingSymbols.has(symbol)}
+          />
+        ))}
       </div>
 
       <style>{`
-        @keyframes nvPulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-        @keyframes nvRegimeFlash { 0%,100%{opacity:1} 30%,70%{opacity:0.4} }
+        @keyframes nvPulse    { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes nvBreathe  { 0%,100%{box-shadow:none} 50%{box-shadow:var(--glow)} }
+        @keyframes nvRegimeFlash { 0%,100%{opacity:1} 40%{opacity:0.2} }
       `}</style>
     </div>
   );
