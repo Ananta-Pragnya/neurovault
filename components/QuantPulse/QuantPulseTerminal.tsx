@@ -104,21 +104,28 @@ async function fetchForecast(symbol: string): Promise<ForecastResult | null> {
 }
 
 // ── Signal meter component ─────────────────────────────────────────
+const NV = {
+  bg: '#0A0A0B', surface: '#111113', border: '#1E1E21', border2: '#2A2A2E',
+  gold: '#C9962A', goldText: '#D4A843', platinum: '#9EA8B3',
+  sage: '#4CAF82', coral: '#C94F4F', ice: '#5B9BD5',
+};
+
 const SignalMeter: React.FC<{ label: string; value: number; detail: string }> = ({ label, value, detail }) => {
-  const pct = ((value + 1) / 2) * 100; // map -1..1 to 0..100%
-  const colour = value > 0.1 ? 'bg-emerald-500' : value < -0.1 ? 'bg-rose-500' : 'bg-slate-500';
+  const pct = ((value + 1) / 2) * 100;
+  const barColor = value > 0.1 ? NV.sage : value < -0.1 ? NV.coral : '#475569';
+  const textColor = value > 0.1 ? NV.sage : value < -0.1 ? NV.coral : NV.platinum;
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
-        <span className="text-slate-400">{label}</span>
-        <span className={value > 0.1 ? 'text-emerald-400' : value < -0.1 ? 'text-rose-400' : 'text-slate-400'}>
+        <span style={{ color: NV.platinum }}>{label}</span>
+        <span style={{ color: textColor }}>
           {value > 0.1 ? '▲' : value < -0.1 ? '▼' : '–'} {Math.abs(value).toFixed(2)}
         </span>
       </div>
-      <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-        <div className={`h-full ${colour} transition-all duration-700`} style={{ width: `${pct}%` }} />
+      <div style={{ height: '6px', background: NV.border2, borderRadius: '999px', overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: barColor, transition: 'width 700ms ease' }} />
       </div>
-      <p className="text-[9px] text-slate-600 font-mono">{detail}</p>
+      <p style={{ fontSize: '9px', color: '#4A5260', fontFamily: "'JetBrains Mono', monospace" }}>{detail}</p>
     </div>
   );
 };
@@ -158,12 +165,12 @@ const StrategyPanel: React.FC<{ symbol: string; lastClose: number }> = ({ symbol
   };
 
   return (
-    <section className="bg-slate-900 border border-violet-900/30 rounded-2xl p-5 space-y-4">
+    <section style={{ background: NV.surface, border: `1px solid ${NV.border}`, borderRadius: '16px', padding: '20px' }} className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2">
-          <Target size={14} /> Options Strategy Engine
+        <h3 style={{ fontSize: '11px', fontWeight: 700, color: NV.goldText, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Target size={13} /> Options Strategy Engine
         </h3>
-        <span className="text-[9px] text-slate-600 font-mono uppercase">Real payoff math</span>
+        <span style={{ fontSize: '9px', color: '#4A5260', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>Real payoff math</span>
       </div>
 
       {/* Strategy selector */}
@@ -172,11 +179,14 @@ const StrategyPanel: React.FC<{ symbol: string; lastClose: number }> = ({ symbol
           <button
             key={s}
             onClick={() => setStrategy(s)}
-            className={`flex-1 py-1.5 text-[9px] font-bold uppercase rounded-lg transition-all ${
-              strategy === s
-                ? 'bg-violet-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
+            style={{
+              flex: 1, padding: '6px 0',
+              fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+              borderRadius: '8px', border: `1px solid ${strategy === s ? NV.gold : NV.border2}`,
+              background: strategy === s ? `rgba(201,150,42,0.12)` : 'transparent',
+              color: strategy === s ? NV.goldText : NV.platinum,
+              cursor: 'pointer', transition: 'all 150ms ease-out',
+            }}
           >
             {s.replace('-', ' ')}
           </button>
@@ -186,17 +196,27 @@ const StrategyPanel: React.FC<{ symbol: string; lastClose: number }> = ({ symbol
       <button
         onClick={run}
         disabled={loading || !lastClose}
-        className="w-full py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-xs font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2"
+        style={{
+          width: '100%', padding: '10px',
+          background: loading || !lastClose ? NV.border2 : NV.gold,
+          border: 'none', borderRadius: '10px',
+          color: loading || !lastClose ? '#4A5260' : '#0A0A0B',
+          fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+          cursor: loading || !lastClose ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          transition: 'all 150ms ease-out',
+          boxShadow: loading || !lastClose ? 'none' : '0 0 14px rgba(201,150,42,0.25)',
+        }}
       >
         {loading ? (
-          <><div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" /> Calculating…</>
+          <><div className="w-3 h-3 border border-black/30 border-t-black rounded-full animate-spin" /> Calculating…</>
         ) : (
           <><Zap size={12} /> Run {strategy.replace('-', ' ')}</>
         )}
       </button>
 
       {error && (
-        <div className="flex items-center gap-2 text-rose-400 text-xs bg-rose-900/20 border border-rose-900/40 rounded-lg p-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: NV.coral, fontSize: '11px', background: 'rgba(201,79,79,0.08)', border: `1px solid rgba(201,79,79,0.2)`, borderRadius: '8px', padding: '10px 12px' }}>
           <AlertCircle size={12} /> {error}
         </div>
       )}
@@ -205,21 +225,21 @@ const StrategyPanel: React.FC<{ symbol: string; lastClose: number }> = ({ symbol
         <div className="space-y-3">
           <div className="grid grid-cols-3 gap-2">
             {result.max_profit != null && (
-              <div className="bg-slate-800/60 rounded-xl p-2 text-center">
-                <p className="text-[9px] text-slate-500 uppercase mb-1">Max Profit</p>
-                <p className="text-sm font-bold text-emerald-400 font-mono">${result.max_profit.toFixed(0)}</p>
+              <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Max Profit</p>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: NV.sage, fontFamily: "'JetBrains Mono', monospace" }}>${result.max_profit.toFixed(0)}</p>
               </div>
             )}
             {result.breakeven != null && (
-              <div className="bg-slate-800/60 rounded-xl p-2 text-center">
-                <p className="text-[9px] text-slate-500 uppercase mb-1">Breakeven</p>
-                <p className="text-sm font-bold text-amber-400 font-mono">${result.breakeven.toFixed(2)}</p>
+              <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Breakeven</p>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: NV.goldText, fontFamily: "'JetBrains Mono', monospace" }}>${result.breakeven.toFixed(2)}</p>
               </div>
             )}
             {(result.premium ?? result.net_credit) != null && (
-              <div className="bg-slate-800/60 rounded-xl p-2 text-center">
-                <p className="text-[9px] text-slate-500 uppercase mb-1">{result.premium != null ? 'Premium' : 'Net Credit'}</p>
-                <p className="text-sm font-bold text-indigo-400 font-mono">${(result.premium ?? result.net_credit)!.toFixed(2)}</p>
+              <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>{result.premium != null ? 'Premium' : 'Net Credit'}</p>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: NV.ice, fontFamily: "'JetBrains Mono', monospace" }}>${(result.premium ?? result.net_credit)!.toFixed(2)}</p>
               </div>
             )}
           </div>
@@ -229,25 +249,25 @@ const StrategyPanel: React.FC<{ symbol: string; lastClose: number }> = ({ symbol
             <div className="h-28">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={result.payoff.slice(0, 60)} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="2 2" stroke="#1e293b" vertical={false} />
+                  <CartesianGrid strokeDasharray="2 2" stroke={NV.border} vertical={false} />
                   <XAxis dataKey="price" hide />
                   <YAxis fontSize={8} stroke="#475569" tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, fontSize: 10 }}
+                    contentStyle={{ background: NV.surface, border: `1px solid ${NV.border}`, borderRadius: 8, fontSize: 10 }}
                     formatter={(v: any) => [`$${Number(v).toFixed(2)}`, 'P&L']}
                     labelFormatter={(l) => `Price: $${Number(l).toFixed(2)}`}
                   />
                   <defs>
                     <linearGradient id="payoffGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#8b5cf6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                      <stop offset="5%"  stopColor={NV.gold} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={NV.gold} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <ReferenceLine y={0} stroke="#475569" strokeDasharray="3 3" />
                   <Area
                     type="monotone"
                     dataKey="total_pnl"
-                    stroke="#8b5cf6"
+                    stroke={NV.gold}
                     strokeWidth={1.5}
                     fill="url(#payoffGrad)"
                     dot={false}
@@ -379,353 +399,339 @@ const QuantPulseTerminal: React.FC = () => {
     ? 'text-emerald-400' : forecast?.direction === 'bearish'
     ? 'text-rose-400' : 'text-slate-400';
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <BrainCircuit className="text-white" size={24} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-emerald-400">
-              QuantPulse AI
-            </h1>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">
-              Real TA Engine · SMA + RSI + Bollinger
-            </p>
-          </div>
-        </div>
+  const rsiVal = forecast?.rsi ?? data[data.length - 1]?.rsi ?? 50;
+  const rsiColor = rsiVal > 70 ? NV.coral : rsiVal < 30 ? NV.sage : '#fff';
 
-        <div className="flex items-center gap-4">
-          {/* Data source badge */}
+  return (
+    <div style={{ background: NV.bg, color: '#fff', fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* Tab-internal toolbar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 24px', borderBottom: `1px solid ${NV.border}`,
+        background: NV.surface,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <BrainCircuit size={15} style={{ color: NV.gold }} />
+          <span style={{ fontSize: '11px', fontWeight: 700, color: NV.platinum, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            SMA · RSI · Bollinger Ensemble
+          </span>
           {!loading && (
-            <span className={`text-[9px] font-bold uppercase px-2 py-1 rounded border ${
-              dataSource === 'real'
-                ? 'text-emerald-400 border-emerald-900/50 bg-emerald-900/20'
-                : 'text-amber-400 border-amber-900/50 bg-amber-900/20'
-            }`}>
-              {dataSource === 'real' ? '✓ Live Alpaca Data' : '⚠ No Data'}
+            <span style={{
+              fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+              padding: '3px 8px', borderRadius: '4px',
+              background: dataSource === 'real' ? 'rgba(76,175,130,0.1)' : 'rgba(201,150,42,0.12)',
+              border: `1px solid ${dataSource === 'real' ? 'rgba(76,175,130,0.25)' : 'rgba(201,150,42,0.3)'}`,
+              color: dataSource === 'real' ? NV.sage : NV.goldText,
+            }}>
+              {dataSource === 'real' ? '● LIVE DATA' : '⚠ NO DATA — SYNTHETIC'}
             </span>
           )}
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#4A5260' }} />
             <select
               value={selectedSymbol}
               onChange={(e) => setSelectedSymbol(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer"
+              style={{
+                background: NV.bg, border: `1px solid ${NV.border2}`, borderRadius: '8px',
+                padding: '6px 12px 6px 28px', fontSize: '11px', fontWeight: 600,
+                color: '#fff', fontFamily: "'JetBrains Mono', monospace", cursor: 'pointer',
+                outline: 'none', appearance: 'none',
+              }}
             >
               {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded-full transition-colors ${showSettings ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200'}`}
+            style={{
+              padding: '6px 8px', background: showSettings ? `rgba(201,150,42,0.12)` : 'transparent',
+              border: `1px solid ${showSettings ? NV.gold : NV.border2}`, borderRadius: '8px',
+              color: showSettings ? NV.gold : NV.platinum, cursor: 'pointer', display: 'flex', alignItems: 'center',
+              transition: 'all 150ms ease-out',
+            }}
           >
-            <Settings size={20} />
+            <Settings size={14} />
           </button>
         </div>
-      </header>
+      </div>
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
         {/* Left Column */}
-        <div className="lg:col-span-1 space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-          {/* Prediction Summary Card */}
-          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Forecast</span>
+          {/* Forecast card */}
+          <div style={{ background: NV.surface, border: `1px solid ${NV.border}`, borderRadius: '16px', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#4A5260', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Forecast</span>
               {forecast && (
-                <span className={`text-[10px] font-bold px-2 py-1 rounded border flex items-center gap-1 ${
-                  forecast.direction === 'bullish'
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    : forecast.direction === 'bearish'
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
-                }`}>
-                  {forecast.direction === 'bullish' ? <TrendingUp size={10} /> : forecast.direction === 'bearish' ? <TrendingDown size={10} /> : null}
+                <span style={{
+                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px',
+                  background: forecast.direction === 'bullish' ? 'rgba(76,175,130,0.1)' : forecast.direction === 'bearish' ? 'rgba(201,79,79,0.1)' : 'rgba(158,168,179,0.08)',
+                  border: `1px solid ${forecast.direction === 'bullish' ? 'rgba(76,175,130,0.25)' : forecast.direction === 'bearish' ? 'rgba(201,79,79,0.25)' : NV.border2}`,
+                  color: forecast.direction === 'bullish' ? NV.sage : forecast.direction === 'bearish' ? NV.coral : NV.platinum,
+                }}>
+                  {forecast.direction === 'bullish' ? <TrendingUp size={9} /> : forecast.direction === 'bearish' ? <TrendingDown size={9} /> : null}
                   {(forecast.direction ?? 'neutral').toUpperCase()}
                 </span>
               )}
             </div>
 
             {loading ? (
-              <div className="animate-pulse space-y-3">
-                <div className="h-8 bg-slate-800 rounded w-2/3" />
-                <div className="h-4 bg-slate-800 rounded w-1/2" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className="skeleton" style={{ height: '36px', width: '60%', borderRadius: '6px' }} />
+                <div className="skeleton" style={{ height: '14px', width: '45%', borderRadius: '4px' }} />
               </div>
             ) : forecast ? (
               <>
-                <div className="mb-4">
-                  <span className={`text-3xl font-bold font-mono ${directionColor}`}>
+                <div style={{ marginBottom: '16px' }}>
+                  <span style={{
+                    fontSize: '28px', fontWeight: 700,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: forecast.direction === 'bullish' ? NV.sage : forecast.direction === 'bearish' ? NV.coral : '#fff',
+                  }}>
                     ${forecast.price_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <p className="text-xs text-slate-500 mt-1">Target (vs ${forecast.last_close.toFixed(2)} last close)</p>
+                  <p style={{ fontSize: '10px', color: '#4A5260', marginTop: '4px', fontFamily: "'JetBrains Mono', monospace" }}>
+                    Target · last close ${forecast.last_close.toFixed(2)}
+                  </p>
                 </div>
 
-                {/* Confidence bar */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[10px] font-bold uppercase text-slate-500">
-                    <span>Signal Confidence</span>
-                    <span className="text-indigo-400">{forecast.confidence.toFixed(1)}%</span>
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                    <span style={{ color: '#4A5260' }}>Signal Confidence</span>
+                    <span style={{ color: NV.goldText, fontFamily: "'JetBrains Mono', monospace" }}>{forecast.confidence.toFixed(1)}%</span>
                   </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-500 transition-all duration-1000 rounded-full"
-                      style={{ width: `${forecast.confidence}%` }}
-                    />
+                  <div style={{ height: '6px', background: NV.border2, borderRadius: '999px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${forecast.confidence}%`, background: NV.gold, borderRadius: '999px', transition: 'width 1000ms ease' }} />
                   </div>
                 </div>
 
-                {/* Key metrics */}
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  <div className="bg-slate-800/50 p-2.5 rounded-xl">
-                    <p className="text-[9px] text-slate-500 uppercase font-bold mb-1">RSI (14)</p>
-                    <p className={`text-sm font-bold font-mono ${forecast.rsi > 70 ? 'text-rose-400' : forecast.rsi < 30 ? 'text-emerald-400' : 'text-white'}`}>
-                      {forecast.rsi.toFixed(1)}
-                    </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px' }}>
+                    <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>RSI (14)</p>
+                    <p style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: rsiColor }}>{forecast.rsi.toFixed(1)}</p>
                   </div>
-                  <div className="bg-slate-800/50 p-2.5 rounded-xl">
-                    <p className="text-[9px] text-slate-500 uppercase font-bold mb-1">Momentum</p>
-                    <p className={`text-sm font-bold font-mono ${forecast.momentum_pct > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px' }}>
+                    <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Momentum</p>
+                    <p style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: forecast.momentum_pct > 0 ? NV.sage : NV.coral }}>
                       {forecast.momentum_pct > 0 ? '+' : ''}{forecast.momentum_pct.toFixed(2)}%
                     </p>
                   </div>
                 </div>
               </>
             ) : (
-              <p className="text-xs text-slate-600 italic">No forecast available</p>
-            )}
-          </section>
-
-          {/* Real Signal Breakdown */}
-          {forecast && (
-            <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                <Cpu size={14} /> Signal Breakdown
-              </h3>
-              <SignalMeter
-                label="SMA Trend"
-                value={forecast.signals?.sma_trend?.value ?? 0}
-                detail={forecast.signals?.sma_trend?.label ?? ''}
-              />
-              <SignalMeter
-                label="RSI Momentum"
-                value={forecast.signals?.rsi_momentum?.value ?? 0}
-                detail={forecast.signals?.rsi_momentum?.label ?? ''}
-              />
-              <SignalMeter
-                label="Bollinger"
-                value={forecast.signals?.bollinger?.value ?? 0}
-                detail={forecast.signals?.bollinger?.label ?? ''}
-              />
-              <div className="pt-2 border-t border-slate-800 space-y-1 text-[10px] font-mono text-slate-500">
-                <div className="flex justify-between">
-                  <span>SMA 20</span>
-                  <span className="text-slate-300">${(forecast.sma_20 ?? 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>SMA 50</span>
-                  <span className="text-slate-300">${(forecast.sma_50 ?? 0).toFixed(2)}</span>
-                </div>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <Activity size={28} style={{ color: NV.gold, opacity: 0.3, margin: '0 auto 8px' }} />
+                <p style={{ fontSize: '11px', color: '#4A5260', fontStyle: 'italic' }}>No forecast available</p>
               </div>
-            </section>
+            )}
+          </div>
+
+          {/* Signal Breakdown */}
+          {forecast && (
+            <div style={{ background: NV.surface, border: `1px solid ${NV.border}`, borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ fontSize: '10px', fontWeight: 700, color: '#4A5260', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
+                <Cpu size={13} /> Signal Breakdown
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <SignalMeter label="SMA Trend" value={forecast.signals?.sma_trend?.value ?? 0} detail={forecast.signals?.sma_trend?.label ?? ''} />
+                <SignalMeter label="RSI Momentum" value={forecast.signals?.rsi_momentum?.value ?? 0} detail={forecast.signals?.rsi_momentum?.label ?? ''} />
+                <SignalMeter label="Bollinger" value={forecast.signals?.bollinger?.value ?? 0} detail={forecast.signals?.bollinger?.label ?? ''} />
+              </div>
+              <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: `1px solid ${NV.border}`, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {[['SMA 20', `$${(forecast.sma_20 ?? 0).toFixed(2)}`], ['SMA 50', `$${(forecast.sma_50 ?? 0).toFixed(2)}`]].map(([label, val]) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontFamily: "'JetBrains Mono', monospace" }}>
+                    <span style={{ color: '#4A5260' }}>{label}</span>
+                    <span style={{ color: NV.platinum }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* AI Analysis */}
           {forecast?.market_analysis && (
-            <section className="bg-gradient-to-br from-indigo-900/40 to-slate-900 border border-indigo-500/20 rounded-2xl p-5">
-              <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Activity size={14} /> AI Analyst Insights
+            <div style={{ background: `rgba(201,150,42,0.04)`, border: `1px solid rgba(201,150,42,0.12)`, borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ fontSize: '10px', fontWeight: 700, color: NV.goldText, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                <Activity size={13} /> AI Analyst
               </h3>
-              <p className="text-sm text-slate-300 leading-relaxed italic">
+              <p style={{ fontSize: '12px', color: NV.platinum, lineHeight: 1.7, fontStyle: 'italic' }}>
                 "{forecast.market_analysis}"
               </p>
-              <div className="text-[9px] font-bold text-indigo-500/40 uppercase mt-2 text-right">
+              <div style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '10px', textAlign: 'right' }}>
                 {forecast.source === 'real_ta' ? 'Real TA · Verified' : 'Gemini Enhanced'}
               </div>
-            </section>
+            </div>
           )}
         </div>
 
-        {/* Right 3 columns */}
-        <div className="lg:col-span-3 space-y-6">
+        {/* Right columns */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Main Chart */}
-          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-[480px] relative">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold flex items-center gap-2">
-                <BarChart3 className="text-indigo-400" size={18} />
-                Price Action &amp; Real AI Forecast
+          <div style={{ background: NV.surface, border: `1px solid ${NV.border}`, borderRadius: '16px', padding: '24px', height: '420px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
+              <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BarChart3 size={16} style={{ color: NV.gold }} />
+                Price Action &amp; AI Forecast
                 {!loading && dataSource === 'empty' && (
-                  <span className="ml-2 text-[9px] text-amber-400 border border-amber-900/40 bg-amber-900/20 px-2 py-0.5 rounded">
-                    No Alpaca data
+                  <span style={{
+                    fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    padding: '3px 8px', borderRadius: '4px',
+                    background: 'rgba(201,150,42,0.12)', border: `1px solid rgba(201,150,42,0.3)`, color: NV.goldText,
+                  }}>
+                    ⚠ NO ALPACA DATA
                   </span>
                 )}
               </h3>
-              <div className="flex items-center gap-4 text-[9px] font-bold uppercase">
-                <span className="flex items-center gap-1.5 text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Actual
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: NV.sage }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: NV.sage, flexShrink: 0 }} /> Actual
                 </span>
-                <span className="flex items-center gap-1.5 text-indigo-400">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500" /> AI Forecast
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: NV.gold }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: NV.gold, flexShrink: 0 }} /> AI Forecast
                 </span>
               </div>
             </div>
 
-            <div className="h-full pb-16">
+            <div style={{ flex: 1, minHeight: 0 }}>
               {loading ? (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-                  <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-                  <p className="text-sm font-medium text-slate-500 animate-pulse">
-                    Fetching Alpaca bars · Running SMA + RSI + Bollinger…
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                  <div style={{ width: '40px', height: '40px', border: `3px solid rgba(201,150,42,0.15)`, borderTopColor: NV.gold, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  <p style={{ fontSize: '11px', color: '#4A5260', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.1em', textTransform: 'uppercase', animation: 'pulse 1.5s ease-in-out infinite' }}>
+                    Fetching bars · Running ensemble…
                   </p>
+                </div>
+              ) : chartData.length === 0 || dataSource === 'empty' ? (
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                  <BarChart3 size={40} style={{ color: NV.gold, opacity: 0.2 }} />
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: NV.platinum }}>No price history available</p>
+                  <p style={{ fontSize: '10px', color: '#4A5260', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: 'center', maxWidth: '260px', lineHeight: 1.6 }}>
+                    Alpaca free plan returned no OHLCV bars for {selectedSymbol}.<br />Forecast signals still available in the left panel.
+                  </p>
+                  <button
+                    onClick={() => loadData(selectedSymbol)}
+                    style={{
+                      marginTop: '8px', padding: '7px 18px',
+                      background: 'transparent', border: `1px solid ${NV.gold}`, borderRadius: '8px',
+                      color: NV.goldText, fontSize: '10px', fontWeight: 700,
+                      letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                      transition: 'all 150ms ease-out',
+                    }}
+                  >
+                    Retry
+                  </button>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#10b981" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        <stop offset="5%"  stopColor={NV.sage} stopOpacity={0.15} />
+                        <stop offset="95%" stopColor={NV.sage} stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="foreGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        <stop offset="5%"  stopColor={NV.gold} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={NV.gold} stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                    <XAxis dataKey="date" stroke="#475569" fontSize={9} tickLine={false} axisLine={false} minTickGap={30} />
-                    <YAxis stroke="#475569" fontSize={9} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={v => `$${v}`} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={NV.border} vertical={false} />
+                    <XAxis dataKey="date" stroke="#4A5260" fontSize={9} tickLine={false} axisLine={false} minTickGap={30} />
+                    <YAxis stroke="#4A5260" fontSize={9} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={v => `$${v}`} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, fontSize: 11 }}
-                      itemStyle={{ color: '#94a3b8' }}
+                      contentStyle={{ backgroundColor: NV.surface, border: `1px solid ${NV.border}`, borderRadius: 10, fontSize: 11 }}
+                      itemStyle={{ color: NV.platinum }}
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="close"
-                      stroke="#10b981"
-                      strokeWidth={1.5}
-                      fillOpacity={1}
-                      fill="url(#histGrad)"
-                      connectNulls
-                      dot={false}
-                      isAnimationActive={false}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="forecastClose"
-                      stroke="#6366f1"
-                      strokeWidth={1.5}
-                      strokeDasharray="5 5"
-                      fillOpacity={1}
-                      fill="url(#foreGrad)"
-                      connectNulls
-                      dot={false}
-                    />
+                    <Area type="monotone" dataKey="close" stroke={NV.sage} strokeWidth={1.5} fillOpacity={1} fill="url(#histGrad)" connectNulls dot={false} isAnimationActive={false} />
+                    <Area type="monotone" dataKey="forecastClose" stroke={NV.gold} strokeWidth={1.5} strokeDasharray="5 5" fillOpacity={1} fill="url(#foreGrad)" connectNulls dot={false} />
                     <Line type="monotone" dataKey="sma20" stroke={INDICATOR_COLORS.sma20} strokeWidth={1} dot={false} opacity={0.5} />
                     <Line type="monotone" dataKey="sma50" stroke={INDICATOR_COLORS.sma50} strokeWidth={1} dot={false} opacity={0.5} />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
             </div>
-          </section>
+          </div>
 
-          {/* Technical indicator cards + Strategy panel */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Indicator cards */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                {/* RSI */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 col-span-3">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-bold text-slate-500 uppercase">RSI (14)</span>
-                    <Info size={13} className="text-slate-600" />
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className={`text-2xl font-bold font-mono ${
-                      (forecast?.rsi ?? 50) > 70 ? 'text-rose-400' : (forecast?.rsi ?? 50) < 30 ? 'text-emerald-400' : 'text-white'
-                    }`}>
-                      {(forecast?.rsi ?? data[data.length - 1]?.rsi ?? 0).toFixed(1)}
-                    </div>
-                    <div className="w-full h-2 bg-slate-800 rounded-full mt-3 relative overflow-hidden">
-                      <div className="absolute left-[30%] right-[30%] h-full bg-slate-700/50 border-x border-slate-600/50" />
-                      <div
-                        className={`h-full ${(forecast?.rsi ?? 50) > 70 ? 'bg-rose-500' : (forecast?.rsi ?? 50) < 30 ? 'bg-emerald-500' : 'bg-indigo-500'} transition-all`}
-                        style={{ width: `${forecast?.rsi ?? 50}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between w-full mt-1 text-[8px] text-slate-600 font-bold uppercase">
-                      <span>Oversold</span><span>Neutral</span><span>Overbought</span>
-                    </div>
-                  </div>
+          {/* RSI + Strategy row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            {/* RSI card */}
+            <div style={{ background: NV.surface, border: `1px solid ${NV.border}`, borderRadius: '16px', padding: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.1em' }}>RSI (14)</span>
+                <Info size={13} style={{ color: '#4A5260' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ fontSize: '28px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: rsiColor }}>
+                  {rsiVal.toFixed(1)}
+                </div>
+                <div style={{ width: '100%', height: '8px', background: NV.border2, borderRadius: '999px', marginTop: '14px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: '30%', right: '30%', height: '100%', background: 'rgba(158,168,179,0.08)', borderLeft: `1px solid ${NV.border2}`, borderRight: `1px solid ${NV.border2}` }} />
+                  <div style={{ height: '100%', background: rsiVal > 70 ? NV.coral : rsiVal < 30 ? NV.sage : NV.ice, width: `${rsiVal}%`, transition: 'width 500ms ease', borderRadius: '999px' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '6px', fontSize: '8px', color: '#4A5260', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <span>Oversold</span><span>Neutral</span><span>Overbought</span>
                 </div>
               </div>
             </div>
 
-            {/* Strategy Panel — wired to real endpoints */}
-            <StrategyPanel
-              symbol={selectedSymbol}
-              lastClose={forecast?.last_close ?? lastPriceRef.current}
-            />
+            {/* Strategy Panel */}
+            <StrategyPanel symbol={selectedSymbol} lastClose={forecast?.last_close ?? lastPriceRef.current} />
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Settings sidebar */}
-      <aside className={`fixed inset-y-0 right-0 w-80 bg-slate-900 border-l border-slate-800 shadow-2xl transition-transform duration-300 z-[60] p-6 ${showSettings ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-lg font-bold flex items-center gap-2"><Settings size={18} /> Settings</h2>
-          <button onClick={() => setShowSettings(false)} className="text-slate-500 hover:text-white">&times;</button>
+      <aside style={{
+        position: 'fixed', inset: '0 0 0 auto', width: '300px',
+        background: NV.surface, borderLeft: `1px solid ${NV.border}`,
+        boxShadow: '-20px 0 60px rgba(0,0,0,0.6)',
+        transform: showSettings ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 300ms ease', zIndex: 200, padding: '24px',
+        display: 'flex', flexDirection: 'column', gap: '0',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Settings size={15} style={{ color: NV.gold }} /> Settings
+          </h2>
+          <button onClick={() => setShowSettings(false)} style={{ color: '#4A5260', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
-        <div className="space-y-6">
-          <div>
-            <label className="text-xs font-bold text-slate-400 uppercase mb-4 block">Signal Weights (display only)</label>
-            <div className="space-y-4">
-              {Object.entries(weights).map(([model, weight]) => (
-                <div key={model}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-[10px] text-slate-300 font-bold">{model}</span>
-                    <span className="text-[10px] text-indigo-400">{(weight * 100).toFixed(0)}%</span>
-                  </div>
-                  <input
-                    type="range" min="0" max="1" step="0.05" value={weight}
-                    onChange={(e) => handleWeightChange(model as ModelType, parseFloat(e.target.value))}
-                    className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                  />
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <label style={{ fontSize: '10px', fontWeight: 700, color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '16px' }}>Signal Weights (display only)</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {Object.entries(weights).map(([model, weight]) => (
+              <div key={model}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '10px', color: NV.platinum, fontWeight: 600 }}>{model}</span>
+                  <span style={{ fontSize: '10px', color: NV.goldText, fontFamily: "'JetBrains Mono', monospace" }}>{(weight * 100).toFixed(0)}%</span>
                 </div>
-              ))}
-            </div>
+                <input
+                  type="range" min="0" max="1" step="0.05" value={weight}
+                  onChange={(e) => handleWeightChange(model as ModelType, parseFloat(e.target.value))}
+                  className="nv-slider w-full cursor-pointer"
+                />
+              </div>
+            ))}
           </div>
-          <div className="pt-6 border-t border-slate-800">
+          <div style={{ paddingTop: '20px', marginTop: '20px', borderTop: `1px solid ${NV.border}` }}>
             <button
               onClick={() => { loadData(selectedSymbol); setShowSettings(false); }}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
+              style={{
+                width: '100%', padding: '11px', background: NV.gold, border: 'none', borderRadius: '10px',
+                color: '#0A0A0B', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                boxShadow: '0 0 16px rgba(201,150,42,0.25)', transition: 'all 150ms ease-out',
+              }}
             >
-              <Cpu size={16} /> Refresh Forecast
+              <Cpu size={14} /> Refresh Forecast
             </button>
-            <p className="text-[9px] text-slate-500 text-center mt-3">Pulls fresh Alpaca bars and re-runs SMA + RSI + Bollinger ensemble</p>
+            <p style={{ fontSize: '9px', color: '#4A5260', textAlign: 'center', marginTop: '10px', fontFamily: "'JetBrains Mono', monospace" }}>
+              Pulls fresh Alpaca bars · re-runs SMA + RSI + Bollinger
+            </p>
           </div>
         </div>
       </aside>
-
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-900 px-6 py-2 flex justify-between items-center">
-        <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${wsStatus === 'live' ? 'bg-emerald-500 animate-pulse' : wsStatus === 'connecting' ? 'bg-amber-500 animate-pulse' : 'bg-slate-600'}`} />
-            {wsStatus === 'live' ? 'Live Stream' : wsStatus === 'connecting' ? 'Connecting…' : 'Stream Offline'}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${forecast ? 'bg-indigo-500' : 'bg-slate-700'}`} />
-            {forecast ? 'Real TA Ensemble' : 'No Forecast'}
-          </div>
-        </div>
-        <div className="text-[10px] font-mono text-slate-700">
-          {new Date().toLocaleTimeString()}
-        </div>
-      </footer>
     </div>
   );
 };
