@@ -56,11 +56,12 @@ export const PortfolioTracker: React.FC = () => {
 
         <div className="bg-slate-950 border border-white/5 rounded-2xl p-6">
            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Risk Profile</p>
-           <h2 className={`text-3xl font-mono font-bold tracking-tighter ${
-             portfolio.risk?.risk_class === 'HIGH' ? 'text-red-400' : 
-             portfolio.risk?.risk_class === 'MEDIUM' ? 'text-yellow-400' : 
-             'text-emerald-400'
-           }`}>{portfolio.risk?.risk_class || "—"}</h2>
+           <h2 className="font-mono font-bold tracking-tighter" style={{
+             fontSize: '22px',
+             color: portfolio.risk?.risk_class === 'HIGH' ? '#C94F4F'
+                  : portfolio.risk?.risk_class === 'MEDIUM' ? '#D4892A'
+                  : '#4CAF82',
+           }}>{portfolio.risk?.risk_class || "—"}</h2>
            <p className="text-[10px] text-slate-600 font-bold mt-1 uppercase">95% VaR: ${portfolio.risk?.var_95?.var_dollar?.toLocaleString() || "—"}</p>
         </div>
 
@@ -72,8 +73,14 @@ export const PortfolioTracker: React.FC = () => {
 
         <div className="bg-slate-950 border border-white/5 rounded-2xl p-6">
            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Diversification</p>
-           <h2 className="text-3xl font-mono font-bold text-blue-400 tracking-tighter">{portfolio.correlation?.diversification_score || "—"}/100</h2>
-           <p className="text-[10px] text-slate-600 font-bold mt-1 uppercase">Concentration: {portfolio.sector_exposure?.concentration_risk || "—"}</p>
+           <h2 className="text-3xl font-mono font-bold tracking-tighter" style={{ color: '#5B9BD5' }}>
+             {portfolio.correlation?.diversification_score > 0 ? `${portfolio.correlation.diversification_score}/100` : '—'}
+           </h2>
+           <p className="text-[10px] text-slate-600 font-bold mt-1 uppercase">
+             {portfolio.correlation?.diversification_score > 0
+               ? `Concentration: ${portfolio.sector_exposure?.concentration_risk || '—'}`
+               : 'Insufficient holdings data'}
+           </p>
         </div>
       </div>
 
@@ -103,6 +110,22 @@ export const PortfolioTracker: React.FC = () => {
                    </tr>
                 </thead>
                 <tbody>
+                   {portfolio.positions.length === 0 && (
+                     <tr>
+                       <td colSpan={6} style={{ padding: '32px 24px', textAlign: 'center' }}>
+                         <p style={{ fontSize: '13px', color: '#4A5260', fontStyle: 'italic', marginBottom: '10px' }}>
+                           No active positions — add holdings to begin tracking
+                         </p>
+                         <button style={{
+                           padding: '6px 16px', border: '1px solid #C9962A', background: 'transparent',
+                           color: '#D4A843', fontSize: '12px', borderRadius: '6px', cursor: 'pointer',
+                           fontFamily: "'Inter', sans-serif",
+                         }}>
+                           + Add Position
+                         </button>
+                       </td>
+                     </tr>
+                   )}
                    {portfolio.positions.map((pos, i) => (
                      <tr key={i} className="hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group">
                         <td className="px-6 py-4">

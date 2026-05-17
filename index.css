@@ -2,217 +2,216 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════════════════
-   NEUROVAULT — OBSIDIAN GOLD DESIGN SYSTEM
-   Warm gold on deep navy · Outfit + JetBrains Mono
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   NEUROVAULT — OBSIDIAN INTELLIGENCE DESIGN SYSTEM
+   Inter (UI) + JetBrains Mono (data) · Molten Gold accent
+   ═══════════════════════════════════════════════════════════ */
 
 :root {
-  /* Gold palette */
-  --gold-primary:  #D4AF37;
-  --gold-light:    #F9E2AF;
-  --gold-bright:   #FFD966;
-  --gold-dark:     #9A7B2C;
-  --gold-muted:    #C6A85A;
-  --gold-dim:      rgba(212, 175, 55, 0.12);
-  --gold-glow-sm:  0 0 12px rgba(212, 175, 55, 0.35);
-  --gold-glow:     0 0 24px rgba(212, 175, 55, 0.25), 0 0 60px rgba(212, 175, 55, 0.08);
-  --gold-glow-lg:  0 0 40px rgba(212, 175, 55, 0.35), 0 0 100px rgba(212, 175, 55, 0.12);
+  /* ── Core backgrounds ── */
+  --nv-bg:        #0A0A0B;   /* deep obsidian-charcoal */
+  --nv-surface:   #111113;   /* card surface */
+  --nv-surface-2: #161618;   /* raised element */
+  --nv-surface-3: #1A1A1D;   /* hover / elevated */
 
-  /* Backgrounds */
-  --obsidian:      #020305;
-  --bg:            #080C14;
-  --surface:       #0D1220;
-  --surface-2:     #111827;
-  --surface-3:     #18202E;
+  /* ── Borders ── */
+  --nv-border:    #1E1E21;   /* structural divider */
+  --nv-border-2:  #2A2A2E;   /* visible border */
 
-  /* Borders */
-  --border:        rgba(255, 255, 255, 0.06);
-  --border-gold:   rgba(212, 175, 55, 0.18);
-  --border-gold-bright: rgba(212, 175, 55, 0.35);
+  /* ── Brand accent ── */
+  --nv-gold:      #C9962A;   /* molten gold / aged bullion */
+  --nv-gold-dim:  rgba(201, 150, 42, 0.12);
+  --nv-gold-mid:  rgba(201, 150, 42, 0.22);
+  --nv-gold-glow: 0 0 20px rgba(201, 150, 42, 0.22);
+  --nv-gold-text: #D4A843;   /* slightly lighter for text */
 
-  /* Status */
-  --green:   #10B981;
-  --amber:   #F59E0B;
-  --red:     #EF4444;
-  --blue:    #3B82F6;
-  --purple:  #8B5CF6;
-  --teal:    #06B6D4;
+  /* ── Secondary / metadata ── */
+  --nv-platinum:  #9EA8B3;   /* cold platinum — inactive labels */
+  --nv-muted:     #4A5260;   /* very dim text */
 
-  --green-glow:  0 0 12px rgba(16, 185, 129, 0.4);
-  --amber-glow:  0 0 12px rgba(245, 158, 11, 0.4);
-  --red-glow:    0 0 12px rgba(239, 68, 68, 0.4);
+  /* ── Status colors ── */
+  --nv-sage:      #4CAF82;   /* muted sage green — positive / gain */
+  --nv-coral:     #C94F4F;   /* deep coral-red — negative / loss */
+  --nv-ice:       #5B9BD5;   /* ice blue — forecasts, AI signals */
+  --nv-amber:     #D4892A;   /* amber — warnings */
+  --nv-purple:    #7B68C8;   /* purple — special signals */
 
-  /* Text */
+  /* ── Typography ── */
+  --font-ui:   'Inter',        system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Legacy gold for landing page ── */
+  --gold-primary: #D4AF37;
+  --gold-light:   #F9E2AF;
+  --gold-dark:    #9A7B2C;
+  --gold-muted:   #C6A85A;
+  --obsidian:     #020305;
   --platinum:     #E5E4E2;
-  --text:         #E2E8F0;
-  --text-dim:     #8892A4;
-  --text-muted:   #3A4050;
-
-  /* Typography */
-  --font-display: 'Outfit', sans-serif;
-  --font-data:    'JetBrains Mono', monospace;
 }
 
 /* ── Base ── */
 body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: var(--font-display);
+  background-color: var(--nv-bg);
+  color: #E2E8F0;
+  font-family: var(--font-ui);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   letter-spacing: -0.02em;
 }
 
-/* ── Gold classes (must remain for landing page) ── */
-.glass {
-  background: rgba(8, 12, 20, 0.65);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-gold);
-}
-
-.glass-gold {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.07) 0%, rgba(8, 12, 20, 0.5) 100%);
-  backdrop-filter: blur(24px);
-  border: 1px solid var(--border-gold);
-}
-
-.glass-dark {
-  background: rgba(8, 12, 20, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-}
-
-.text-gold {
-  color: var(--gold-primary);
-  background: linear-gradient(135deg, var(--gold-primary), var(--gold-light), var(--gold-dark));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.brief-text {
-  background: linear-gradient(135deg, var(--gold-muted) 0%, var(--gold-bright) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.bg-gold-gradient {
-  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
-}
-
-.gold-shadow {
-  box-shadow: var(--gold-glow);
-}
-
-.gold-border {
-  border-color: var(--border-gold);
-}
-
-.glow-dot {
-  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.8));
-}
-
-/* ── Terminal-specific surface ── */
-.terminal-surface {
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-/* ── Data font ── */
-.font-data {
+/* ── Data / mono ── */
+.font-data, .font-mono, code {
   font-family: var(--font-data);
   font-feature-settings: 'tnum' 1;
+}
+
+/* ── NV surface utilities ── */
+.nv-surface   { background: var(--nv-surface);   border: 1px solid var(--nv-border); }
+.nv-surface-2 { background: var(--nv-surface-2); border: 1px solid var(--nv-border); }
+.nv-card      { background: var(--nv-surface); border: 1px solid var(--nv-border); border-radius: 10px; }
+
+/* ── Landing page gold classes (must survive) ── */
+.glass {
+  background: rgba(10, 10, 11, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+}
+.glass-gold {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.07) 0%, rgba(10, 10, 11, 0.5) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+.glass-dark {
+  background: rgba(10, 10, 11, 0.88);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--nv-border);
+}
+.text-gold {
+  color: var(--gold-primary);
+  background: linear-gradient(135deg, #D4AF37, #F9E2AF, #9A7B2C);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brief-text {
+  background: linear-gradient(135deg, #C6A85A 0%, #F6E27A 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F9E2AF 50%, #9A7B2C 100%);
+}
+.gold-shadow    { box-shadow: 0 0 24px rgba(212, 175, 55, 0.2); }
+.gold-border    { border-color: rgba(212, 175, 55, 0.25); }
+.glow-dot       { filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.8)); }
+
+/* ── NV accent utilities ── */
+.nv-gold-text   { color: var(--nv-gold-text); }
+.nv-gold-border { border-color: var(--nv-gold); }
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--nv-surface) 0%, var(--nv-surface-3) 50%, var(--nv-surface) 100%);
+  background-size: 200% 100%;
+  animation: nvSkeleton 2s ease-in-out infinite;
+}
+@keyframes nvSkeleton {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ── Scrollbars ── */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { scrollbar-width: none; }
-
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.2) rgba(0, 0, 0, 0.3);
+  scrollbar-color: var(--nv-border-2) var(--nv-bg);
 }
 *::-webkit-scrollbar { width: 4px; height: 4px; }
-*::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
-*::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 2px; }
-*::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.4); }
+*::-webkit-scrollbar-track { background: var(--nv-bg); }
+*::-webkit-scrollbar-thumb { background: var(--nv-border-2); border-radius: 2px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--nv-gold-dim); }
+
+/* ── Transitions (all 150ms ease-out per spec) ── */
+.nv-transition { transition: all 0.15s ease-out; }
 
 /* ── Animations ── */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-in { animation: fade-in 0.45s ease-out forwards; }
+.animate-in { animation: fade-in 0.3s ease-out forwards; }
 
-@keyframes gold-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
+@keyframes nvGoldPulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1;   }
 }
+@keyframes nvBreathe {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+@keyframes nvPing {
+  0%   { transform: scale(1);   opacity: 1; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+
 .shimmer {
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, rgba(201, 150, 42, 0.1), transparent);
   background-size: 200% 100%;
-  animation: gold-shimmer 3s infinite;
+  animation: nvSkeleton 3s infinite;
 }
 
-@keyframes gold-breathe {
-  0%, 100% { opacity: 0.6; box-shadow: 0 0 20px rgba(212,175,55,0.2); }
-  50%       { opacity: 1;   box-shadow: 0 0 40px rgba(212,175,55,0.5), 0 0 80px rgba(212,175,55,0.12); }
+/* ── Gold range input ── */
+input[type="range"].nv-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--nv-border-2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
 }
-.breathe-gold { animation: gold-breathe 3s ease-in-out infinite; }
-
-@keyframes regime-alert {
-  0%, 100% { opacity: 1; }
-  40%       { opacity: 0.2; }
+input[type="range"].nv-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--nv-gold);
+  box-shadow: 0 0 8px rgba(201, 150, 42, 0.5);
+  cursor: pointer;
 }
-.regime-flash { animation: regime-alert 0.6s ease-in-out 4; }
-
-@keyframes scan-line {
-  0%   { transform: translateY(-4px); }
-  100% { transform: translateY(calc(100vh + 4px)); }
-}
-
-@keyframes ping-gold {
-  0%    { transform: scale(1);   opacity: 1; }
-  75%   { transform: scale(2.2); opacity: 0; }
-  100%  { transform: scale(1);   opacity: 0; }
-}
-
-@keyframes float-up {
-  0%   { transform: translateY(0);   opacity: 1; }
-  100% { transform: translateY(-24px); opacity: 0; }
+input[type="range"].nv-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--nv-gold);
+  border: none;
+  cursor: pointer;
 }
 
-/* ── Dot grid background for terminal ── */
-.dot-grid {
-  background-image: radial-gradient(circle, rgba(212, 175, 55, 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
+/* ── Selection ── */
+::selection {
+  background: rgba(201, 150, 42, 0.2);
+  color: #F0D080;
+}
+
+/* ── Focus ── */
+*:focus-visible {
+  outline: 1px solid rgba(201, 150, 42, 0.45);
+  outline-offset: 2px;
 }
 
 /* ── Preserve 3D ── */
 .preserve-3d { transform-style: preserve-3d; }
 
-/* ── Focus ── */
-*:focus-visible {
-  outline: 1px solid rgba(212, 175, 55, 0.5);
-  outline-offset: 2px;
-}
-
-/* ── Selection ── */
-::selection {
-  background: rgba(212, 175, 55, 0.2);
-  color: var(--gold-light);
-}
-
 /* ── Spacing ── */
 .section-padding { padding: 4rem 1.5rem; }
-@media (min-width: 768px) {
-  .section-padding { padding: 6rem 2rem; }
-}
+@media (min-width: 768px) { .section-padding { padding: 6rem 2rem; } }

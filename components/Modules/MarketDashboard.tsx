@@ -69,15 +69,14 @@ export const MarketDashboard: React.FC = () => {
   }));
 
   return (
-    <div className="flex flex-col gap-6 p-6 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 p-6 animate-in fade-in duration-500" style={{ background: '#0A0A0B' }}>
       {/* Header & Search */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-5" style={{ borderBottom: '1px solid #1E1E21' }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-1 flex items-center gap-2">
-            <Globe size={24} className="text-blue-400" />
+          <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#E2E8F0', marginBottom: '4px', letterSpacing: '-0.02em' }}>
             Market Intelligence
           </h1>
-          <p className="text-sm text-slate-400 font-mono">Real-time Global Surveillance System</p>
+          <p style={{ fontSize: '13px', color: '#4A5260', fontFamily: "'JetBrains Mono', monospace" }}>Real-time global surveillance</p>
         </div>
 
         <div className="relative w-full md:w-96 group">
@@ -122,10 +121,27 @@ export const MarketDashboard: React.FC = () => {
       {/* Macro Overlay */}
       <div className="relative">
         {errors.macro && (
-          <div className="absolute inset-0 z-10 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center rounded-xl border border-red-500/20">
-            <span className="text-red-400 font-mono text-xs uppercase font-bold flex items-center gap-2">
-              <Zap size={14} /> Macro Data Unavailable
-            </span>
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            padding: '28px', textAlign: 'center',
+            background: '#111113', border: '1px solid #1E1E21', borderRadius: '10px',
+            marginBottom: '0',
+          }}>
+            <Zap size={28} style={{ color: '#C9962A', marginBottom: '10px', opacity: 0.7 }} />
+            <p style={{ fontSize: '14px', fontWeight: 600, color: '#E2E8F0', marginBottom: '4px' }}>Macro data unavailable</p>
+            <p style={{ fontSize: '13px', color: '#4A5260', marginBottom: '16px' }}>
+              FRED feed unavailable — check API key configuration
+            </p>
+            <button
+              onClick={() => fetchMacro()}
+              style={{
+                padding: '6px 18px', border: '1px solid #C9962A', background: 'transparent',
+                color: '#D4A843', fontSize: '12px', fontWeight: 500, borderRadius: '6px', cursor: 'pointer',
+                fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em',
+              }}
+            >
+              RETRY CONNECTION
+            </button>
           </div>
         )}
         {macro && (
@@ -156,7 +172,7 @@ export const MarketDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {loading.quotes ? (
                Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-40 bg-white/5 animate-pulse rounded-xl border border-white/5" />
+                  <div key={i} className="skeleton" style={{ height: '160px', borderRadius: '10px', border: '1px solid #1E1E21' }} />
                ))
             ) : (
               quotes.map(q => (
@@ -203,9 +219,12 @@ export const MarketDashboard: React.FC = () => {
                  </div>
                ))}
                {quotes.filter(q => q.volume_spike?.spike).length === 0 && (
-                 <div className="flex flex-col items-center justify-center py-10 text-slate-600">
-                    <Activity size={32} opacity={0.2} />
-                    <p className="text-xs mt-2 italic">Monitoring for volume spikes...</p>
+                 <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                    <Activity size={24} style={{ color: '#2A2A2E', margin: '0 auto 10px' }} />
+                    <p style={{ fontSize: '13px', color: '#4A5260' }}>No anomalies detected</p>
+                    <p style={{ fontSize: '11px', color: '#2A2A2E', marginTop: '4px', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em' }}>
+                      MONITORING FOR VOLUME SPIKES
+                    </p>
                  </div>
                )}
             </div>
@@ -231,9 +250,16 @@ const PriceCard = ({ data, onSelect }: { data: any, onSelect: () => void }) => {
   const hasSparkline = sparkline.length > 0;
 
   return (
-    <div 
+    <div
       onClick={onSelect}
-      className="group bg-slate-950 border border-white/5 hover:border-white/20 rounded-2xl p-5 transition-all cursor-pointer relative overflow-hidden"
+      style={{
+        background: '#111113', border: '1px solid #1E1E21', borderRadius: '10px',
+        padding: '18px', cursor: 'pointer', position: 'relative', overflow: 'hidden',
+        transition: 'border-color 0.15s ease-out, background 0.15s ease-out',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#2A2A2E'; (e.currentTarget as HTMLElement).style.background = '#161618'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#1E1E21'; (e.currentTarget as HTMLElement).style.background = '#111113'; }}
+      className="group"
     >
       {/* Sparkline decoration */}
       {hasSparkline && (
@@ -251,8 +277,8 @@ const PriceCard = ({ data, onSelect }: { data: any, onSelect: () => void }) => {
           <h4 className="text-white font-bold text-lg group-hover:text-blue-400 transition-colors uppercase">{data.ticker}</h4>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter truncate w-32">{data.name || data.ticker}</p>
         </div>
-        <div className={`flex items-center gap-1 font-mono text-sm font-bold ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-          {isUp ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 500, color: isUp ? '#4CAF82' : '#C94F4F' }}>
+          {isUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
           {isUp ? '+' : ''}{(data.change_pct || 0).toFixed(2)}%
         </div>
       </div>

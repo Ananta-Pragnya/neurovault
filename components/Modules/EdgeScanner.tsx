@@ -173,11 +173,11 @@ export const EdgeScanner: React.FC = () => {
           <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Symbols Scanned</p>
           <p className="text-2xl font-bold text-white font-mono">{results.length}</p>
         </div>
-        <div className="bg-emerald-950/50 border border-emerald-700/20 rounded-xl p-4">
-          <p className="text-[9px] font-mono text-emerald-500/70 uppercase tracking-widest mb-2">Edge Detected</p>
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-bold text-emerald-400 font-mono">{edgeCount}</p>
-            <p className="text-[9px] text-emerald-500/50 font-mono">
+        <div style={{ background: 'rgba(76,175,130,0.06)', border: '1px solid rgba(76,175,130,0.18)', borderRadius: '10px', padding: '16px' }}>
+          <p style={{ fontSize: '9px', fontFamily: "'JetBrains Mono', monospace", color: 'rgba(76,175,130,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>Edge Detected</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <p style={{ fontSize: '24px', fontWeight: 700, color: '#4CAF82', fontFamily: "'JetBrains Mono', monospace" }}>{edgeCount}</p>
+            <p style={{ fontSize: '9px', color: 'rgba(76,175,130,0.45)', fontFamily: "'JetBrains Mono', monospace" }}>
               {results.length > 0 ? `${((edgeCount / results.length) * 100).toFixed(0)}% hit rate` : ''}
             </p>
           </div>
@@ -240,9 +240,10 @@ export const EdgeScanner: React.FC = () => {
       </div>
 
       {/* Philosophy Footer */}
-      <div className="bg-[#0D121A] border border-white/5 rounded-xl p-4 text-center">
-        <p className="text-[9px] font-mono text-slate-600 uppercase tracking-widest leading-relaxed">
-          The system refuses to trade ~70% of the time. That discipline <em className="text-slate-500 not-italic">is</em> the edge.
+      <div style={{ background: '#111113', border: '1px solid #1E1E21', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+        <p style={{ fontSize: '9px', fontFamily: "'JetBrains Mono', monospace", color: '#4A5260', letterSpacing: '0.1em', textTransform: 'uppercase', lineHeight: 1.9 }}>
+          The system refuses to trade ~70% of the time. That discipline{' '}
+          <span style={{ color: '#9EA8B3' }}>is</span> the edge.{' '}
           Small constant bleed on false signals · Asymmetric payoff on true dislocations · Maximum loss always defined.
         </p>
       </div>

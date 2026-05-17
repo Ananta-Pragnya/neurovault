@@ -98,13 +98,25 @@ export const SimulationLab: React.FC = () => {
            </div>
         </div>
 
-        <button 
+        <button
           onClick={handleRun}
           disabled={loading.simulation}
-          className="mt-8 w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 group"
+          style={{
+            marginTop: '32px', width: '100%', padding: '12px',
+            background: loading.simulation ? '#1A1A1D' : '#C9962A',
+            border: 'none', borderRadius: '8px', cursor: loading.simulation ? 'not-allowed' : 'pointer',
+            color: loading.simulation ? '#4A5260' : '#0A0A0B',
+            fontSize: '13px', fontWeight: 700, fontFamily: "'Inter', sans-serif",
+            letterSpacing: '0.04em',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            transition: 'all 0.15s ease-out',
+            boxShadow: loading.simulation ? 'none' : '0 0 18px rgba(201,150,42,0.22)',
+          }}
+          onMouseEnter={e => { if (!loading.simulation) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 28px rgba(201,150,42,0.4)'; }}
+          onMouseLeave={e => { if (!loading.simulation) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 18px rgba(201,150,42,0.22)'; }}
         >
-          {loading.simulation ? <RefreshCcw size={20} className="animate-spin" /> : <Play size={20} className="group-hover:translate-x-1 transition-transform" />}
-          {loading.simulation ? 'SIMULATING...' : 'EXECUTE SIMULATION'}
+          {loading.simulation ? <RefreshCcw size={16} className="animate-spin" /> : <Play size={16} />}
+          {loading.simulation ? 'Simulating...' : 'Execute Simulation'}
         </button>
       </div>
 
@@ -161,9 +173,11 @@ export const SimulationLab: React.FC = () => {
                  </LineChart>
                </ResponsiveContainer>
              ) : (
-               <div className="flex flex-col items-center justify-center h-full opacity-20">
-                  <Activity size={64} className="mb-4" />
-                  <p className="text-xs uppercase tracking-[0.3em]">Awaiting Simulation Parameters</p>
+               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
+                  <Activity size={48} style={{ color: '#C9962A', opacity: 0.35 }} />
+                  <p style={{ fontSize: '12px', color: '#4A5260', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                    Awaiting simulation parameters
+                  </p>
                </div>
              )}
            </div>
@@ -196,7 +210,7 @@ const InputRange = ({ label, value, unit, min, max, step = 1, percent, onChange 
       step={step} 
       value={value} 
       onChange={e => onChange(parseFloat(e.target.value))}
-      className="w-full h-1 bg-white/5 rounded-full appearance-none accent-emerald-500 cursor-pointer"
+      className="nv-slider w-full cursor-pointer"
     />
   </div>
 );

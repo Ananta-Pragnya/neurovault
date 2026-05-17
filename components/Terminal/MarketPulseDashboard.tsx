@@ -26,33 +26,33 @@ interface MarketPulse {
 const REGIME = {
   unknown: {
     label: 'UNKNOWN', tip: 'Insufficient data',
-    primary: '#4B5563', faded: 'rgba(75,85,99,0.08)', border: 'rgba(75,85,99,0.2)',
-    glow: 'none', gradient: 'rgba(75,85,99,0.04)', icon: '○',
+    primary: '#4A5260', faded: 'rgba(74,82,96,0.08)', border: 'rgba(74,82,96,0.2)',
+    glow: 'none', gradient: 'rgba(74,82,96,0.04)', icon: '○',
   },
   compressed: {
-    label: 'COMPRESSED', tip: 'VOL LOW — BUY CONVEXITY',
-    primary: '#10B981', faded: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)',
-    glow: '0 0 24px rgba(16,185,129,0.15)', gradient: 'rgba(16,185,129,0.06)', icon: '▼',
+    label: 'COMPRESSED', tip: 'Vol low — buy convexity',
+    primary: '#4CAF82', faded: 'rgba(76,175,130,0.08)', border: 'rgba(76,175,130,0.22)',
+    glow: '0 0 20px rgba(76,175,130,0.14)', gradient: 'rgba(76,175,130,0.05)', icon: '▼',
   },
   normal: {
-    label: 'NORMAL', tip: 'MEAN STATE — SELECTIVE',
-    primary: '#3B82F6', faded: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)',
-    glow: '0 0 24px rgba(59,130,246,0.15)', gradient: 'rgba(59,130,246,0.06)', icon: '●',
+    label: 'NORMAL', tip: 'Mean state — selective trading',
+    primary: '#5B9BD5', faded: 'rgba(91,155,213,0.08)', border: 'rgba(91,155,213,0.22)',
+    glow: '0 0 20px rgba(91,155,213,0.14)', gradient: 'rgba(91,155,213,0.05)', icon: '●',
   },
   stressed: {
-    label: 'STRESSED', tip: 'VOL ELEVATED — SELL PREMIUM',
-    primary: '#F59E0B', faded: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.30)',
-    glow: '0 0 28px rgba(245,158,11,0.20)', gradient: 'rgba(245,158,11,0.07)', icon: '▲',
+    label: 'STRESSED', tip: 'Vol elevated — sell premium carefully',
+    primary: '#D4892A', faded: 'rgba(212,137,42,0.10)', border: 'rgba(212,137,42,0.28)',
+    glow: '0 0 24px rgba(212,137,42,0.18)', gradient: 'rgba(212,137,42,0.06)', icon: '▲',
   },
   crisis: {
-    label: 'CRISIS', tip: 'FAT TAIL EVENT — PURE DEFENSE',
-    primary: '#EF4444', faded: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.35)',
-    glow: '0 0 36px rgba(239,68,68,0.25)', gradient: 'rgba(239,68,68,0.09)', icon: '■',
+    label: 'CRISIS', tip: 'Fat tail event — pure defense',
+    primary: '#C94F4F', faded: 'rgba(201,79,79,0.12)', border: 'rgba(201,79,79,0.32)',
+    glow: '0 0 32px rgba(201,79,79,0.22)', gradient: 'rgba(201,79,79,0.08)', icon: '■',
   },
   transition: {
-    label: 'TRANSITION', tip: 'REGIME SHIFTING — HALT TRADES',
-    primary: '#8B5CF6', faded: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.30)',
-    glow: '0 0 30px rgba(139,92,246,0.20)', gradient: 'rgba(139,92,246,0.08)', icon: '◆',
+    label: 'TRANSITION', tip: 'Regime shifting — halt trades',
+    primary: '#7B68C8', faded: 'rgba(123,104,200,0.10)', border: 'rgba(123,104,200,0.28)',
+    glow: '0 0 24px rgba(123,104,200,0.18)', gradient: 'rgba(123,104,200,0.07)', icon: '◆',
   },
 };
 
