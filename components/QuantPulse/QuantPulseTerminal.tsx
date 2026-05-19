@@ -492,32 +492,32 @@ const QuantPulseTerminal: React.FC = () => {
                     fontFamily: "'JetBrains Mono', monospace",
                     color: forecast.direction === 'bullish' ? NV.sage : forecast.direction === 'bearish' ? NV.coral : '#fff',
                   }}>
-                    ${forecast.price_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${(forecast.price_target ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                   <p style={{ fontSize: '10px', color: '#4A5260', marginTop: '4px', fontFamily: "'JetBrains Mono', monospace" }}>
-                    Target · last close ${forecast.last_close.toFixed(2)}
+                    Target · last close ${(forecast.last_close ?? 0).toFixed(2)}
                   </p>
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
                     <span style={{ color: '#4A5260' }}>Signal Confidence</span>
-                    <span style={{ color: NV.goldText, fontFamily: "'JetBrains Mono', monospace" }}>{forecast.confidence.toFixed(1)}%</span>
+                    <span style={{ color: NV.goldText, fontFamily: "'JetBrains Mono', monospace" }}>{(forecast.confidence ?? 0).toFixed(1)}%</span>
                   </div>
                   <div style={{ height: '6px', background: NV.border2, borderRadius: '999px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${forecast.confidence}%`, background: NV.gold, borderRadius: '999px', transition: 'width 1000ms ease' }} />
+                    <div style={{ height: '100%', width: `${forecast.confidence ?? 0}%`, background: NV.gold, borderRadius: '999px', transition: 'width 1000ms ease' }} />
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px' }}>
                     <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>RSI (14)</p>
-                    <p style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: rsiColor }}>{forecast.rsi.toFixed(1)}</p>
+                    <p style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: rsiColor }}>{(forecast.rsi ?? 50).toFixed(1)}</p>
                   </div>
                   <div style={{ background: NV.bg, borderRadius: '10px', padding: '10px' }}>
                     <p style={{ fontSize: '9px', color: '#4A5260', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Momentum</p>
-                    <p style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: forecast.momentum_pct > 0 ? NV.sage : NV.coral }}>
-                      {forecast.momentum_pct > 0 ? '+' : ''}{forecast.momentum_pct.toFixed(2)}%
+                    <p style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: (forecast.momentum_pct ?? 0) > 0 ? NV.sage : NV.coral }}>
+                      {(forecast.momentum_pct ?? 0) > 0 ? '+' : ''}{(forecast.momentum_pct ?? 0).toFixed(2)}%
                     </p>
                   </div>
                 </div>
