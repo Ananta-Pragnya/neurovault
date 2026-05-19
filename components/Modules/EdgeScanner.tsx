@@ -277,7 +277,7 @@ const EdgeCard: React.FC<{ result: ScanResult }> = ({ result }) => {
           <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">Asymmetric Edge Detected</p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold font-mono text-white">{bet.upside_multiple.toFixed(1)}x</div>
+          <div className="text-2xl font-bold font-mono text-white">{(bet.upside_multiple ?? 0).toFixed(1)}x</div>
           <div className="text-[9px] text-slate-500 font-mono uppercase">payoff</div>
         </div>
       </div>
@@ -286,25 +286,25 @@ const EdgeCard: React.FC<{ result: ScanResult }> = ({ result }) => {
       <div className="grid grid-cols-2 gap-3">
         <MetBox
           label="Entry Cost"
-          value={`${Math.abs(bet.entry_cost_pct).toFixed(2)}%`}
-          sub={bet.entry_cost_pct < 0 ? 'credit received' : 'debit paid'}
+          value={`${Math.abs(bet.entry_cost_pct ?? 0).toFixed(2)}%`}
+          sub={(bet.entry_cost_pct ?? 0) < 0 ? 'credit received' : 'debit paid'}
           highlight={false}
         />
         <MetBox
           label="Max Loss"
-          value={`${bet.max_loss_pct.toFixed(2)}%`}
+          value={`${(bet.max_loss_pct ?? 0).toFixed(2)}%`}
           sub="of capital at risk"
           highlight={false}
         />
         <MetBox
           label="Kelly Size"
-          value={`${bet.kelly_size_pct.toFixed(2)}%`}
+          value={`${(bet.kelly_size_pct ?? 0).toFixed(2)}%`}
           sub="fractional Kelly (¼)"
           highlight={true}
         />
         <MetBox
           label="Breakeven Move"
-          value={`${bet.breakeven_move_pct > 0 ? '+' : ''}${bet.breakeven_move_pct.toFixed(1)}%`}
+          value={`${(bet.breakeven_move_pct ?? 0) > 0 ? '+' : ''}${(bet.breakeven_move_pct ?? 0).toFixed(1)}%`}
           sub="in underlying"
           highlight={false}
         />

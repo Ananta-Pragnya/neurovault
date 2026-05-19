@@ -153,7 +153,7 @@ export const SentimentNews: React.FC = () => {
                 >
                   <div className="flex items-center gap-5">
                     <div className="text-xs font-mono font-bold text-slate-500 w-12 text-center uppercase">
-                       {new Date(n.datetime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                       {n.datetime ? new Date(n.datetime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
                     </div>
                     <div>
                        <p className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-1">{n.headline}</p>

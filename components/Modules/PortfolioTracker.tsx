@@ -133,15 +133,15 @@ export const PortfolioTracker: React.FC = () => {
                            <p className="text-[9px] text-slate-600 font-bold uppercase">LONG EQUITY</p>
                         </td>
                         <td className="px-6 py-4 text-right text-slate-300 font-bold italic">{pos.quantity}</td>
-                        <td className="px-6 py-4 text-right text-white font-bold">${pos.current_value.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right text-white font-bold">${(pos.current_value ?? 0).toLocaleString()}</td>
                         <td className={`px-6 py-4 text-right font-bold ${pos.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                           {pos.pnl_pct >= 0 ? '+' : ''}{pos.pnl_pct.toFixed(2)}%
+                           {(pos.pnl_pct ?? 0) >= 0 ? '+' : ''}{(pos.pnl_pct ?? 0).toFixed(2)}%
                         </td>
                         <td className="px-6 py-4 text-right">
                            <div className="flex flex-col items-end gap-1">
-                              <span className="text-slate-400 font-bold">{pos.weight_pct.toFixed(1)}%</span>
+                              <span className="text-slate-400 font-bold">{(pos.weight_pct ?? 0).toFixed(1)}%</span>
                               <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
-                                 <div className="h-full bg-blue-500" style={{ width: `${pos.weight_pct}%` }} />
+                                 <div className="h-full bg-blue-500" style={{ width: `${pos.weight_pct ?? 0}%` }} />
                               </div>
                            </div>
                         </td>
@@ -195,7 +195,7 @@ export const PortfolioTracker: React.FC = () => {
                        <div key={i} className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                           <span className="text-slate-500">{s.sector}:</span>
-                          <span className="text-white">{s.weight_pct.toFixed(0)}%</span>
+                          <span className="text-white">{(s.weight_pct ?? 0).toFixed(0)}%</span>
                        </div>
                     ))}
                  </div>

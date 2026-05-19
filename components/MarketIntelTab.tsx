@@ -129,7 +129,7 @@ const MarketIntelTab: React.FC = () => {
                                     </div>
                                     <div className="glass-gold p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors">
                                         <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest italic mb-2">Cycle Time</p>
-                                        <p className="text-xs font-bold text-white tracking-widest">{new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+                                        <p className="text-xs font-bold text-white tracking-widest">{data.timestamp ? new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--'}</p>
                                     </div>
                                     <div className="glass-gold p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors">
                                         <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest italic mb-2">Optimizer</p>

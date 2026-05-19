@@ -157,7 +157,7 @@ function RegimeCard({ pulse, isFlashing }: { pulse: MarketPulse; isFlashing: boo
           lineHeight: 1,
           textShadow: isCritical ? `0 0 20px ${col}40` : 'none',
         }}>
-          ${pulse.last_price.toFixed(2)}
+          ${(pulse.last_price ?? 0).toFixed(2)}
         </div>
       </div>
 
@@ -210,10 +210,10 @@ function RegimeCard({ pulse, isFlashing }: { pulse: MarketPulse; isFlashing: boo
         paddingTop: '8px',
       }}>
         {[
-          { label: 'RV·D',  val: `${(pulse.realized_vol_daily * 100).toFixed(1)}%`, warn: pulse.realized_vol_daily > 0.25 },
-          { label: 'VoV',   val: pulse.vol_of_vol.toFixed(3),                        warn: pulse.vol_of_vol > 0.08 },
-          { label: 'TAIL',  val: `${pulse.tail_risk_score.toFixed(1)}/10`,           warn: pulse.tail_risk_score > 7 },
-          { label: 'VOL×',  val: `${pulse.volume_surge_ratio.toFixed(1)}×`,          warn: pulse.volume_surge_ratio > 2 },
+          { label: 'RV·D',  val: `${((pulse.realized_vol_daily ?? 0) * 100).toFixed(1)}%`, warn: (pulse.realized_vol_daily ?? 0) > 0.25 },
+          { label: 'VoV',   val: (pulse.vol_of_vol ?? 0).toFixed(3),                     warn: (pulse.vol_of_vol ?? 0) > 0.08 },
+          { label: 'TAIL',  val: `${(pulse.tail_risk_score ?? 0).toFixed(1)}/10`,        warn: (pulse.tail_risk_score ?? 0) > 7 },
+          { label: 'VOL×',  val: `${(pulse.volume_surge_ratio ?? 1).toFixed(1)}×`,       warn: (pulse.volume_surge_ratio ?? 1) > 2 },
         ].map(({ label, val, warn }) => (
           <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px' }}>
             <span style={{
