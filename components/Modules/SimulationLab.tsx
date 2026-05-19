@@ -33,10 +33,10 @@ export const SimulationLab: React.FC = () => {
 
   useEffect(() => {
     if (quote) {
-      setParams(p => ({ 
-        ...p, 
-        initial_price: quote.price,
-        volatility: Math.abs(quote.change_pct / 10) || 0.25 
+      setParams(p => ({
+        ...p,
+        initial_price: quote.price ?? p.initial_price,
+        volatility: Math.abs(quote.change_pct / 10) || 0.25
       }));
     }
   }, [selectedTicker, quote]);
@@ -200,7 +200,7 @@ const InputRange = ({ label, value, unit, min, max, step = 1, percent, onChange 
     <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
        <span className="text-slate-500">{label}</span>
        <span className="text-white bg-white/5 px-2 py-0.5 rounded font-mono">
-         {percent ? (value * 100).toFixed(0) : value.toLocaleString()}{unit}
+         {percent ? ((value ?? 0) * 100).toFixed(0) : (value ?? 0).toLocaleString()}{unit}
        </span>
     </div>
     <input 

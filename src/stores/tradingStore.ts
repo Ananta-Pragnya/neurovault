@@ -96,7 +96,6 @@ export const useTradingStore = create<TradingState>((set, get) => ({
       get().fetchQuote(ticker),
       get().fetchNews(ticker),
       get().fetchMacro(),
-      get().fetchQuotes(['AAPL', 'TSLA', 'NVDA', 'MSFT', 'RELIANCE.NS', 'BTC-USD'])
     ]);
   },
 
@@ -110,8 +109,8 @@ export const useTradingStore = create<TradingState>((set, get) => ({
     const normalizedQuote = quote ? {
         ...quote,
         current_price: quote.price,
-        change_pct: quote.change_pct,
-        last_fetch: new Date(quote.timestamp).toLocaleTimeString(),
+        change_pct: quote.change_pct ?? 0,
+        last_fetch: quote.timestamp ? new Date(quote.timestamp).toLocaleTimeString() : '--',
         provider: quote.provider || 'Alpaca'
     } : null;
 
@@ -137,14 +136,13 @@ export const useTradingStore = create<TradingState>((set, get) => ({
   fetchQuotes: async (tickers) => {
     set(s => ({ loading: { ...s.loading, quotes: true } }));
     const result = await api.fetchQuotes(tickers);
-    // Normalized to ensure UI consistency
-    const quotes = result?.map((q: any) => ({
+    const quotes = (result || []).filter(Boolean).map((q: any) => ({
         ...q,
         current_price: q.price,
-        change_pct: q.change_pct,
-        last_fetch: new Date(q.timestamp).toLocaleTimeString(),
+        change_pct: q.change_pct ?? 0,
+        last_fetch: q.timestamp ? new Date(q.timestamp).toLocaleTimeString() : '--',
         provider: q.provider || 'Alpaca'
-    })) || [];
+    }));
 
     set(s => ({ 
       quotes, 
