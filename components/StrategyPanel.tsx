@@ -134,7 +134,7 @@ export const StrategyPanel: React.FC<StrategyPanelProps> = ({
             <span>·</span>
             <span>DTE: {suggestion.primary.ideal_dte}</span>
             <span>·</span>
-            <span>Confidence: {suggestion.primary.confidence.toFixed(0)}%</span>
+            <span>Confidence: {(suggestion.primary.confidence ?? 0).toFixed(0)}%</span>
           </div>
         </div>
       )}
@@ -287,7 +287,7 @@ export const StrategyPanel: React.FC<StrategyPanelProps> = ({
           {suggestion.alternatives.map((alt, i) => (
             <div key={i} className="flex items-center justify-between text-[10px]">
               <span className="text-slate-400">{alt.name}</span>
-              <span className="text-violet-400 font-mono">{alt.confidence.toFixed(0)}%</span>
+              <span className="text-violet-400 font-mono">{(alt.confidence ?? 0).toFixed(0)}%</span>
             </div>
           ))}
         </div>
