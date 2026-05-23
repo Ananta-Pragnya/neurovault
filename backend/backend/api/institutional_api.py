@@ -128,7 +128,7 @@ async def trigger_fetch():
     Admin only - use sparingly
     """
     try:
-        logger.info("🔄 Manual fetch triggered")
+        logger.info("Manual fetch triggered")
         data = fetch_all_data()
         return {"status": "success", "symbols_fetched": len(data.get("symbols", {}))}
     except Exception as e:
@@ -142,7 +142,7 @@ async def trigger_brief():
     Admin only - use sparingly (API costs)
     """
     try:
-        logger.info("🤖 Manual brief generation triggered")
+        logger.info(" Manual brief generation triggered")
         market_data = get_cached_data()
         regime, _ = detector.detect(market_data)
         opportunities = finder.find_opportunities(market_data)
@@ -199,12 +199,12 @@ if __name__ == "__main__":
     scheduler.start()
     
     # Run initial fetch
-    logger.info("🚀 Starting Institutional Intelligence Terminal...")
+    logger.info(" Starting Institutional Intelligence Terminal...")
     try:
         fetch_all_data()
-        logger.info("✅ Initial data fetch complete")
+        logger.info(" Initial data fetch complete")
     except Exception as e:
-        logger.warning(f"⚠️ Initial fetch failed: {e}")
+        logger.warning(f" Initial fetch failed: {e}")
     
     # Start API
     uvicorn.run(app, host="0.0.0.0", port=8000)
