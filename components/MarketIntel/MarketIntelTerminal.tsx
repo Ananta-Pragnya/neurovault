@@ -74,7 +74,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-zinc-200 p-4 md:p-8">
       {/* Header */}
-      <header className="max-w-6xl mx-auto mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
             <span className="text-indigo-500">Market</span>Intel AI
@@ -100,7 +100,7 @@ const App: React.FC = () => {
         </form>
       </header>
 
-      <main className="max-w-6xl mx-auto space-y-6">
+      <main className="space-y-6">
         {status === AppStatus.IDLE && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mb-4">

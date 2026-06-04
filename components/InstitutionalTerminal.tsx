@@ -19,6 +19,7 @@ import { AlertPanel } from './Alerts/AlertPanel';
 import { TabErrorBoundary } from './ErrorBoundary';
 import { MonitorOff, Activity, RefreshCw } from 'lucide-react';
 import { marketSocket, MarketStatus } from '../services/MarketSocket';
+import { NV_SIDEBAR_FULL, NV_SIDEBAR_RAIL } from './Institutional/InstitutionalNav';
 
 const C = {
     bg:       '#0A0A0B',
@@ -46,6 +47,7 @@ export const InstitutionalTerminal: React.FC = () => {
     const [status, setStatus]   = useState<MarketStatus>('NOMINAL');
     const [retryCount, setRetryCount] = useState(0);
     const [timeStr, setTimeStr] = useState('');
+    const [sidebarW, setSidebarW] = useState(NV_SIDEBAR_FULL);
 
     useEffect(() => { if (module) setModule(module); }, [module, setModule]);
     useEffect(() => {
@@ -59,6 +61,13 @@ export const InstitutionalTerminal: React.FC = () => {
         tick();
         const id = setInterval(tick, 1000);
         return () => clearInterval(id);
+    }, []);
+
+    useEffect(() => {
+        const check = () => setSidebarW(window.innerWidth < 1024 ? NV_SIDEBAR_RAIL : NV_SIDEBAR_FULL);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
     }, []);
 
     const sc = STATUS_MAP[status] ?? STATUS_MAP.NOMINAL;
@@ -131,10 +140,11 @@ export const InstitutionalTerminal: React.FC = () => {
             minHeight: '100vh',
             background: C.bg,
             color: '#E2E8F0',
-            paddingTop: '48px', /* 2px stripe + 46px nav */
+            paddingLeft: `${sidebarW}px`,
             display: 'flex',
             flexDirection: 'column',
             fontFamily: "'Inter', system-ui, sans-serif",
+            transition: 'padding-left 0.18s ease-out',
         }}>
             {/* ── 3-Zone Status Bar ── */}
             <div style={{

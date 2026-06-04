@@ -457,7 +457,7 @@ const QuantPulseTerminal: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', padding: '24px' }}>
         {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
