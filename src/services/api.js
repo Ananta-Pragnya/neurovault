@@ -131,6 +131,16 @@ export const fetchNewsSummary = async (_ticker, _headlines) => {
   return null;
 };
 
+export const fetchEarnings = async (ticker) => {
+  try {
+    const res = await fetch(`${API_BASE}/api/earnings/${ticker}`);
+    return await handleResponse('fetchEarnings', res);
+  } catch (e) {
+    console.error('[API ERROR] fetchEarnings:', e);
+    return null;
+  }
+};
+
 export const runSimulation = async ({ ticker, initial_price, volatility, time_horizon = 30 } = {}) => {
   try {
     const res = await fetch(`${API_BASE}/api/simulate/${encodeURIComponent(ticker)}`, { method: 'POST' });

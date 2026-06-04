@@ -8,11 +8,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 const CACHE_KEY = 'market_intel_cache';
 const CACHE_EXPIRY = 10 * 60 * 1000; // 10 minutes
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+
 const App: React.FC = () => {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [data, setData] = useState<NewsIntelligenceResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [earnings, setEarnings] = useState<{ date: string; quarter?: string } | null>(null);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -42,6 +45,19 @@ const App: React.FC = () => {
       localStorage.setItem(CACHE_KEY, JSON.stringify(currentCache));
       
       setStatus(AppStatus.SUCCESS);
+
+      // Fetch earnings calendar for ticker-like queries (all caps, ≤5 chars)
+      const looksLikeTicker = /^[A-Z]{1,5}$/.test(query.trim().toUpperCase());
+      if (looksLikeTicker) {
+        try {
+          const er = await fetch(`${API_BASE}/api/earnings/${query.trim().toUpperCase()}`);
+          if (er.ok) {
+            const ed = await er.json();
+            const next = (ed.earnings || [])[0];
+            if (next?.date) setEarnings({ date: next.date, quarter: next.quarter });
+          }
+        } catch { /* earnings data is best-effort */ }
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to fetch intelligence. Please try again.');
@@ -120,7 +136,22 @@ const App: React.FC = () => {
 
         {status === AppStatus.SUCCESS && data && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
+
+            {/* Earnings badge */}
+            {earnings && (
+              <div className="lg:col-span-3 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 w-fit">
+                <span className="text-xs text-amber-400 font-mono font-semibold uppercase tracking-widest">
+                  📅 Next Earnings: {earnings.date}{earnings.quarter ? ` · ${earnings.quarter}` : ''}
+                </span>
+                {(() => {
+                  const daysOut = Math.round((new Date(earnings.date).getTime() - Date.now()) / 86400000);
+                  return daysOut >= 0 && daysOut <= 14
+                    ? <span className="text-xs text-amber-300 font-mono bg-amber-500/20 px-2 py-0.5 rounded">{daysOut}d</span>
+                    : null;
+                })()}
+              </div>
+            )}
+
             {/* Summary & Key Points */}
             <div className="lg:col-span-2 space-y-6">
               <section className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl backdrop-blur-sm">

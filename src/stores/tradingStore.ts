@@ -1,10 +1,14 @@
 /**
  * Zustand Global Trading Store — REWIRE v2
  * Connects to the new REAL API backend.
+ * Holdings + watchlist persist to localStorage and sync to backend DB.
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import * as api from '../services/api';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 interface TradingState {
   // Active selections
@@ -36,6 +40,12 @@ interface TradingState {
   holdings: any[];
   portfolio: any | null;
 
+  // Watchlist
+  watchlist: string[];
+
+  // Price Alerts
+  alerts: any[];
+
   // Actions
   setTicker: (ticker: string) => void;
   setModule: (module: string) => void;
@@ -48,9 +58,18 @@ interface TradingState {
   runSimulation: (ticker: string, price: number, vol: number) => Promise<void>;
   analyzePortfolio: () => Promise<void>;
   removeHolding: (ticker: string) => void;
+  addHolding: (holding: { ticker: string; quantity: number; avg_cost?: number }) => void;
+  saveHoldings: () => Promise<void>;
+  loadHoldings: () => Promise<void>;
+  addToWatchlist: (symbol: string) => Promise<void>;
+  removeFromWatchlist: (symbol: string) => Promise<void>;
+  loadWatchlist: () => Promise<void>;
+  fetchAlerts: () => Promise<void>;
+  createAlert: (symbol: string, triggerPrice: number, direction: 'above' | 'below') => Promise<void>;
+  deleteAlert: (id: number) => Promise<void>;
 }
 
-export const useTradingStore = create<TradingState>((set, get) => ({
+export const useTradingStore = create<TradingState>()(persist((set, get) => ({
   selectedTicker: 'AAPL',
   activeModule: 'intel',
 
@@ -66,13 +85,14 @@ export const useTradingStore = create<TradingState>((set, get) => ({
   newsSummary: null,
   simulation: null,
 
-  // Initial mock holdings for portfolio
   holdings: [
-    { ticker: 'AAPL', quantity: 150, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 },
-    { ticker: 'TSLA', quantity: 50, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 },
-    { ticker: 'BTCUSD', quantity: 1.5, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 }
+    { ticker: 'AAPL', quantity: 150, avg_cost: 0, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 },
+    { ticker: 'TSLA', quantity: 50,  avg_cost: 0, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 },
+    { ticker: 'BTCUSD', quantity: 1.5, avg_cost: 0, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 }
   ],
   portfolio: null,
+  watchlist: [],
+  alerts: [],
 
   loading: {},
   errors: {},
@@ -200,7 +220,7 @@ export const useTradingStore = create<TradingState>((set, get) => ({
     
     try {
       // 1. Trigger the background simulation
-      await api.runSimulation({ ticker, initial_price: price, expected_return: 0.08, volatility: vol, time_horizon: 30 });
+      await (api as any).runSimulation({ ticker, initial_price: price, expected_return: 0.08, volatility: vol, time_horizon: 30 });
       
       // 2. Strict timeout loop (Fix 1)
       const MAX_WAIT_MS = 60_000;
@@ -315,6 +335,111 @@ export const useTradingStore = create<TradingState>((set, get) => ({
 
   removeHolding: (ticker) => {
     set(s => ({ holdings: s.holdings.filter((h: any) => h.ticker !== ticker) }));
-  }
+  },
 
+  addHolding: (holding) => {
+    set(s => {
+      const existing = s.holdings.find((h: any) => h.ticker === holding.ticker);
+      if (existing) {
+        return { holdings: s.holdings.map((h: any) =>
+          h.ticker === holding.ticker ? { ...h, quantity: holding.quantity, avg_cost: holding.avg_cost ?? h.avg_cost } : h
+        )};
+      }
+      return { holdings: [...s.holdings, { ...holding, current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0 }] };
+    });
+  },
+
+  saveHoldings: async () => {
+    const { holdings } = get();
+    try {
+      await fetch(`${API_BASE}/api/portfolio/holdings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          holdings: holdings.map((h: any) => ({
+            symbol: h.ticker || h.symbol,
+            quantity: h.quantity,
+            avg_cost: h.avg_cost || 0,
+          }))
+        })
+      });
+    } catch (e) { /* backend offline — localStorage still has it */ }
+  },
+
+  loadHoldings: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/portfolio/holdings`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.holdings?.length) {
+        set({ holdings: data.holdings.map((h: any) => ({
+          ticker: h.symbol, quantity: h.quantity, avg_cost: h.avg_cost,
+          current_value: 0, pnl: 0, pnl_pct: 0, weight_pct: 0
+        }))});
+      }
+    } catch (e) { /* use localStorage fallback */ }
+  },
+
+  addToWatchlist: async (symbol) => {
+    const sym = symbol.toUpperCase();
+    set(s => ({ watchlist: s.watchlist.includes(sym) ? s.watchlist : [...s.watchlist, sym] }));
+    try {
+      await fetch(`${API_BASE}/api/watchlist/add`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: sym })
+      });
+    } catch (e) { /* offline */ }
+  },
+
+  removeFromWatchlist: async (symbol) => {
+    const sym = symbol.toUpperCase();
+    set(s => ({ watchlist: s.watchlist.filter(w => w !== sym) }));
+    try { await fetch(`${API_BASE}/api/watchlist/${sym}`, { method: 'DELETE' }); }
+    catch (e) { /* offline */ }
+  },
+
+  loadWatchlist: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/watchlist`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.watchlist?.length) {
+        set({ watchlist: data.watchlist.map((w: any) => w.symbol) });
+      }
+    } catch (e) { /* use localStorage fallback */ }
+  },
+
+  fetchAlerts: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/alerts`);
+      if (!res.ok) return;
+      const data = await res.json();
+      set({ alerts: data.alerts || [] });
+    } catch (e) { /* offline */ }
+  },
+
+  createAlert: async (symbol, triggerPrice, direction) => {
+    try {
+      await fetch(`${API_BASE}/api/alerts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: symbol.toUpperCase(), trigger_price: triggerPrice, direction })
+      });
+      await get().fetchAlerts();
+    } catch (e) { /* offline */ }
+  },
+
+  deleteAlert: async (id) => {
+    try {
+      await fetch(`${API_BASE}/api/alerts/${id}`, { method: 'DELETE' });
+      set(s => ({ alerts: s.alerts.filter((a: any) => a.id !== id) }));
+    } catch (e) { /* offline */ }
+  },
+
+}), {
+  name: 'finmotion-trading-store',
+  partialize: (state) => ({
+    holdings: state.holdings,
+    watchlist: state.watchlist,
+    selectedTicker: state.selectedTicker,
+  }),
 }));

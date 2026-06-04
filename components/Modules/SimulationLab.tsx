@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useTradingStore } from '../../src/stores/tradingStore';
-import { 
-  FlaskConical, 
-  Play, 
-  Settings, 
-  Dna, 
-  ShieldAlert, 
+import {
+  FlaskConical,
+  Play,
+  Settings,
+  Dna,
+  ShieldAlert,
   Thermometer,
   Activity,
   BarChart3,
   Loader2,
   RefreshCcw,
-  Target
+  Target,
+  Download
 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { exportCSV } from '../../src/lib/export';
 
 export const SimulationLab: React.FC = () => {
   const { 
@@ -68,6 +70,20 @@ export const SimulationLab: React.FC = () => {
     });
     return point;
   }) : [];
+
+  const handleExportSim = () => {
+    if (!simulation?.percentiles) return;
+    exportCSV([{
+      ticker:           selectedTicker,
+      p5_final:         simulation.percentiles?.p5,
+      p50_final:        simulation.percentiles?.p50,
+      p95_final:        simulation.percentiles?.p95,
+      prob_profit:      simulation.prob_profit,
+      prob_loss_20pct:  simulation.prob_loss_20pct,
+      expected_return:  simulation.expected_return,
+      n_simulations:    simulation.n_simulations,
+    }], `montecarlo_${selectedTicker}_${new Date().toISOString().split('T')[0]}`);
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 animate-in zoom-in-95 duration-500">

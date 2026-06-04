@@ -6,10 +6,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# We default to a local postgres DB if not provided
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/finmotion")
+# Default to SQLite (zero-cost, no server needed).
+# Set DATABASE_URL in .env to switch to PostgreSQL for production.
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./finmotion.db")
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+_sqlite = DATABASE_URL.startswith("sqlite")
+_connect_args = {"check_same_thread": False} if _sqlite else {}
+
+engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

@@ -14,6 +14,9 @@ const TABS = [
     { id: 'portfolio',   label: 'Portfolio',     path: '/terminal/portfolio'   },
     { id: 'lab',         label: 'Sim Lab',       path: '/terminal/lab'         },
     { id: 'edge',        label: 'Edge',          path: '/terminal/edge'        },
+    { id: 'sectors',     label: 'Sectors',       path: '/terminal/sectors'     },
+    { id: 'backtest',    label: 'Backtest',      path: '/terminal/backtest'    },
+    { id: 'alerts',      label: 'Alerts',        path: '/terminal/alerts'      },
 ];
 
 const C = {
@@ -111,8 +114,14 @@ export function InstitutionalNav({ user, logout }: { user: any; logout: () => vo
                     </div>
                 </button>
 
-                {/* Tab strip — text only, no icons */}
-                <div style={{ display: 'flex', alignItems: 'stretch', flex: 1, height: '100%' }}>
+                {/* Tab strip — scrolls horizontally on mobile */}
+                <div style={{
+                    display: 'flex', alignItems: 'stretch', flex: 1, height: '100%',
+                    overflowX: 'auto', scrollbarWidth: 'none',
+                }}
+                    // Hide webkit scrollbar
+                    ref={el => { if (el) el.style.cssText += '-webkit-overflow-scrolling:touch;'; }}
+                >
                     {TABS.map(tab => {
                         const isActive  = tab.id === activeId;
                         const isHovered = hovered === tab.id && !isActive;

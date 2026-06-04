@@ -41,6 +41,10 @@ from backend.backend.bus.bus import bus, BusEvent
 from backend.backend.cache.cache import unified_cache
 from backend.backend.shared_state import sim_store
 
+# ── Database ────────────────────────────────────────────────────────
+from backend.backend.database.db import engine, SessionLocal
+from backend.backend.database import models as db_models
+
 # ── Services ───────────────────────────────────────────────────────
 from backend.backend.services.alpaca import get_all_snapshots, get_bars, refresh_all_market_data
 from backend.backend.services.intelligence import fetch_and_score_news
@@ -78,6 +82,14 @@ app.add_middleware(
 )
 
 app.include_router(ws_router)
+
+# ── Auth router ────────────────────────────────────────────────────
+try:
+    from backend.backend.api.auth import router as auth_router
+    app.include_router(auth_router, prefix="/api/v1")
+    logger.info("Auth router mounted at /api/v1/auth")
+except Exception as _e:
+    logger.warning(f"Auth router not loaded: {_e}")
 
 
 # ── Dynamic Ticker Registry ────────────────────────────────────────
@@ -137,9 +149,44 @@ async def market_data_loop():
             data    = await refresh_all_market_data(stocks, cryptos)
             for symbol, snapshot in data.items():
                 unified_cache.set(symbol, snapshot)
+            # Check price alerts against live prices
+            await _check_price_alerts(data)
         except Exception as e:
             logger.error(f"[DataLoop] Error: {e}")
         await asyncio.sleep(30)
+
+
+async def _check_price_alerts(market_data: dict):
+    """Fire WebSocket notification when a price alert threshold is crossed."""
+    import json as _json
+    from datetime import datetime as _dt
+    try:
+        with SessionLocal() as db:
+            active = db.query(db_models.PriceAlert).filter_by(is_active=True).all()
+            for alert in active:
+                snap = market_data.get(alert.symbol)
+                if not snap:
+                    continue
+                price = snap.get("price", 0)
+                triggered = (
+                    (alert.direction == "above" and price >= alert.trigger_price) or
+                    (alert.direction == "below" and price <= alert.trigger_price)
+                )
+                if triggered:
+                    alert.is_active = False
+                    alert.triggered_at = _dt.utcnow()
+                    db.commit()
+                    msg = _json.dumps({
+                        "type":    "alert_triggered",
+                        "symbol":  alert.symbol,
+                        "price":   price,
+                        "trigger": alert.trigger_price,
+                        "direction": alert.direction,
+                    })
+                    await ws_manager.broadcast(msg)
+                    logger.info(f"[Alert] {alert.symbol} crossed ${alert.trigger_price} ({alert.direction})")
+    except Exception as e:
+        logger.warning(f"[AlertCheck] {e}")
 
 
 # ── Startup ────────────────────────────────────────────────────────
@@ -180,7 +227,17 @@ async def startup_event():
     _ss.pulse_engine = pulse_engine
     _ss.orchestrator = orchestrator
 
-    logger.info("✅ FinMotion AI v3.0 started — unified bus · Groq · Alpaca sandbox · dynamic tickers · pulse engine")
+    # ── Init SQLite DB (create tables if missing) ──────────────────
+    db_models.Base.metadata.create_all(bind=engine)
+    with SessionLocal() as _db:
+        if not _db.query(db_models.User).filter_by(id=1).first():
+            _db.add(db_models.User(id=1, email="default@finmotion.ai", username="default"))
+            _db.commit()
+        # Restore watchlist into in-memory registry
+        for row in _db.query(db_models.Watchlist).filter_by(user_id=1).all():
+            ticker_registry.add_to_watchlist(row.symbol)
+
+    logger.info("✅ FinMotion AI v3.0 started — unified bus · Groq · Alpaca sandbox · dynamic tickers · pulse engine · SQLite DB")
 
 
 # ── Pydantic Models ────────────────────────────────────────────────
@@ -210,6 +267,19 @@ class SignalRequest(BaseModel):
 
 class IntelligenceRequest(BaseModel):
     query: str
+
+class HoldingRequest(BaseModel):
+    symbol:   str
+    quantity: float
+    avg_cost: float = 0.0
+
+class HoldingsPayload(BaseModel):
+    holdings: List[HoldingRequest]
+
+class PriceAlertRequest(BaseModel):
+    symbol:        str
+    trigger_price: float
+    direction:     str  # "above" or "below"
 
 
 # ── Black-Scholes helpers (used by options chain endpoint) ─────────
@@ -370,8 +440,103 @@ async def analyze_portfolio(req: PortfolioRequest):
 
 @app.post("/api/watchlist/add")
 async def add_to_watchlist(req: WatchlistRequest):
-    ticker_registry.add_to_watchlist(req.symbol)
-    return {"status": "added", "symbol": req.symbol.upper()}
+    sym = req.symbol.upper()
+    ticker_registry.add_to_watchlist(sym)
+    with SessionLocal() as db:
+        exists = db.query(db_models.Watchlist).filter_by(user_id=1, symbol=sym).first()
+        if not exists:
+            db.add(db_models.Watchlist(user_id=1, symbol=sym))
+            db.commit()
+    return {"status": "added", "symbol": sym}
+
+
+@app.get("/api/watchlist")
+async def get_watchlist():
+    with SessionLocal() as db:
+        rows = db.query(db_models.Watchlist).filter_by(user_id=1).all()
+    return {"watchlist": [{"symbol": r.symbol, "volatility_tier": r.volatility_tier, "added_at": str(r.added_at)} for r in rows]}
+
+
+@app.delete("/api/watchlist/{symbol}")
+async def remove_from_watchlist(symbol: str):
+    sym = symbol.upper()
+    with SessionLocal() as db:
+        row = db.query(db_models.Watchlist).filter_by(user_id=1, symbol=sym).first()
+        if row:
+            db.delete(row)
+            db.commit()
+    return {"status": "removed", "symbol": sym}
+
+
+# ── Portfolio Holdings Persistence ────────────────────────────────
+@app.get("/api/portfolio/holdings")
+async def get_holdings():
+    with SessionLocal() as db:
+        rows = db.query(db_models.Position).filter_by(user_id=1, is_active=True).all()
+    return {"holdings": [{"symbol": r.symbol, "quantity": r.quantity, "avg_cost": r.entry_price} for r in rows]}
+
+
+@app.post("/api/portfolio/holdings")
+async def save_holdings(payload: HoldingsPayload):
+    with SessionLocal() as db:
+        # Deactivate all existing positions for this user
+        db.query(db_models.Position).filter_by(user_id=1).update({"is_active": False})
+        db.commit()
+        for h in payload.holdings:
+            sym = h.symbol.upper()
+            db.add(db_models.Position(
+                user_id=1,
+                symbol=sym,
+                entry_price=h.avg_cost,
+                peak_price=h.avg_cost,
+                quantity=h.quantity,
+                is_active=True,
+            ))
+        db.commit()
+    return {"status": "saved", "count": len(payload.holdings)}
+
+
+# ── Price Alerts ───────────────────────────────────────────────────
+@app.post("/api/alerts")
+async def create_alert(req: PriceAlertRequest):
+    direction = req.direction.lower()
+    if direction not in ("above", "below"):
+        raise HTTPException(status_code=400, detail="direction must be 'above' or 'below'")
+    with SessionLocal() as db:
+        alert = db_models.PriceAlert(
+            symbol=req.symbol.upper(),
+            trigger_price=req.trigger_price,
+            direction=direction,
+            is_active=True,
+        )
+        db.add(alert)
+        db.commit()
+        db.refresh(alert)
+        alert_id = alert.id
+    return {"status": "created", "id": alert_id, "symbol": req.symbol.upper(),
+            "trigger_price": req.trigger_price, "direction": direction}
+
+
+@app.get("/api/alerts")
+async def list_alerts():
+    with SessionLocal() as db:
+        rows = db.query(db_models.PriceAlert).filter_by(is_active=True).all()
+    return {"alerts": [
+        {"id": r.id, "symbol": r.symbol, "trigger_price": r.trigger_price,
+         "direction": r.direction, "created_at": str(r.created_at)}
+        for r in rows
+    ]}
+
+
+@app.delete("/api/alerts/{alert_id}")
+async def delete_alert(alert_id: int):
+    with SessionLocal() as db:
+        row = db.query(db_models.PriceAlert).filter_by(id=alert_id).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="Alert not found")
+        db.delete(row)
+        db.commit()
+    return {"status": "deleted", "id": alert_id}
 
 
 # ── Forecasting ────────────────────────────────────────────────────
@@ -726,6 +891,353 @@ async def approve_hedge_decision(timestamp: float):
     if not orchestrator:
         return {"error": "Orchestrator not initialized"}
     return await orchestrator.approve_decision(timestamp)
+
+
+# ── Earnings Calendar ──────────────────────────────────────────────
+@app.get("/api/earnings/{symbol}")
+async def earnings_calendar(symbol: str):
+    """Upcoming earnings date from Finnhub. Cached 1 hour."""
+    sym = symbol.upper()
+    cache_key = f"earnings:{sym}"
+    cached = unified_cache.get(cache_key)
+    if cached:
+        return cached
+
+    try:
+        import httpx as _httpx
+        finnhub_key = os.getenv("FINNHUB_API_KEY", "")
+        if not finnhub_key:
+            return {"symbol": sym, "earnings": []}
+        async with _httpx.AsyncClient(timeout=8) as client:
+            res = await client.get(
+                "https://finnhub.io/api/v1/calendar/earnings",
+                params={"symbol": sym, "token": finnhub_key},
+            )
+            res.raise_for_status()
+            data = res.json()
+        entries = data.get("earningsCalendar", [])[:4]
+        result = {
+            "symbol":   sym,
+            "earnings": [
+                {"date": e.get("date"), "eps_estimate": e.get("epsEstimate"),
+                 "revenue_estimate": e.get("revenueEstimate"), "quarter": e.get("quarter")}
+                for e in entries
+            ],
+        }
+        unified_cache.set(cache_key, result, ttl=3600)
+        return result
+    except Exception as e:
+        logger.warning(f"[Earnings] Failed for {sym}: {e}")
+        return {"symbol": sym, "earnings": []}
+
+
+# ── Sector Rotation ────────────────────────────────────────────────
+@app.get("/api/sectors")
+async def sector_rotation():
+    """S&P 500 sector ETF relative strength (1W/1M/3M returns)."""
+    cache_key = "sectors:rotation"
+    cached = unified_cache.get(cache_key)
+    if cached:
+        return cached
+
+    SECTOR_ETFS = {
+        "XLK": "Technology", "XLF": "Financials",  "XLE": "Energy",
+        "XLV": "Health Care", "XLY": "Cons. Discret.", "XLP": "Cons. Staples",
+        "XLI": "Industrials", "XLB": "Materials",  "XLRE": "Real Estate",
+        "XLU": "Utilities",   "XLC": "Comm. Services",
+    }
+
+    sectors = []
+    for etf, name in SECTOR_ETFS.items():
+        try:
+            bars = await get_bars(etf, timeframe="1Day", limit=90)
+            closes = [b.get("close") or b.get("c", 0) for b in bars if b.get("close") or b.get("c")]
+            if len(closes) < 2:
+                continue
+            c = closes[-1]
+            r1w = (c / closes[-6]  - 1) * 100 if len(closes) >= 6  else 0.0
+            r1m = (c / closes[-23] - 1) * 100 if len(closes) >= 23 else 0.0
+            r3m = (c / closes[-64] - 1) * 100 if len(closes) >= 64 else 0.0
+            sectors.append({"symbol": etf, "name": name,
+                             "return_1w": round(r1w, 2), "return_1m": round(r1m, 2), "return_3m": round(r3m, 2)})
+        except Exception as e:
+            logger.warning(f"[Sectors] {etf} failed: {e}")
+
+    result = {"sectors": sectors, "ts": time.time()}
+    unified_cache.set(cache_key, result, ttl=1800)
+    return result
+
+
+# ── Correlation Matrix ─────────────────────────────────────────────
+@app.post("/api/portfolio/correlation")
+async def portfolio_correlation(req: PortfolioRequest):
+    """Pearson correlation matrix for portfolio holdings (60-day daily returns)."""
+    symbols = [h.symbol.upper() for h in req.holdings]
+    if len(symbols) < 2:
+        return {"symbols": symbols, "matrix": [[1.0]]}
+
+    price_series: dict[str, list[float]] = {}
+    for sym in symbols:
+        bars = await get_bars(sym, timeframe="1Day", limit=62)
+        closes = [b.get("close") or b.get("c", 0) for b in bars if b.get("close") or b.get("c")]
+        if closes:
+            price_series[sym] = closes
+
+    valid = [s for s in symbols if s in price_series]
+    if len(valid) < 2:
+        return {"symbols": valid, "matrix": [[1.0] * len(valid)] * len(valid)}
+
+    import numpy as _np
+    min_len = min(len(price_series[s]) for s in valid)
+    returns = _np.array([[
+        (price_series[s][i] - price_series[s][i - 1]) / price_series[s][i - 1]
+        for i in range(1, min_len)
+    ] for s in valid])
+
+    corr = _np.corrcoef(returns)
+    return {"symbols": valid, "matrix": [[round(float(v), 3) for v in row] for row in corr]}
+
+
+# ── Backtest Engine ────────────────────────────────────────────────
+class BacktestRequest(BaseModel):
+    strategy: str = "sma_crossover"
+    fast:     int   = 20
+    slow:     int   = 50
+    capital:  float = 10_000.0
+    days:     int   = 180
+
+@app.post("/api/backtest/{symbol}")
+async def backtest(symbol: str, req: BacktestRequest):
+    """Run a TA strategy backtest against real historical bars."""
+    sym = symbol.upper()
+    bars = await get_bars(sym, timeframe="1Day", limit=req.days)
+    closes = [b.get("close") or b.get("c", 0) for b in bars if b.get("close") or b.get("c")]
+    if len(closes) < req.slow + 5:
+        raise HTTPException(status_code=400, detail=f"Not enough bar data for {sym} — need at least {req.slow + 5} days")
+
+    from backend.backend.engines.backtest_engine import run_backtest
+    result = run_backtest(closes, strategy=req.strategy, fast=req.fast, slow=req.slow, capital=req.capital)
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  NEW ENDPOINTS — MASTER_PROMPT_STOCK_TRACKER reference additions
+# ═══════════════════════════════════════════════════════════════════════
+
+# ── Enhanced forecast endpoint (Claude + full indicators) ────────────
+@app.get("/api/v1/forecast/{symbol}")
+async def forecast_v1(symbol: str, refresh: bool = False):
+    """
+    Enhanced forecast using the full indicator engine (MACD, ATR, BB %B, VWAP)
+    + Claude 3-sentence analysis with 5-min cache.
+    Parallel route to /api/forecast/{symbol} (legacy kept for backward compat).
+    """
+    try:
+        from backend.backend.intelligence.forecast import generate_ticker_forecast
+        return await generate_ticker_forecast(symbol.upper(), force_refresh=refresh)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── SSE signal stream ─────────────────────────────────────────────────
+@app.get("/api/v1/stream/{symbol}")
+async def signal_stream(symbol: str):
+    """
+    Server-Sent Events endpoint. Streams live signal updates for a ticker.
+    Emits:
+      - signal payloads from the unified_cache every 5 s
+      - heartbeat every 30 s
+    Frontend: new EventSource('/api/v1/stream/AAPL')
+    """
+    from fastapi.responses import StreamingResponse
+    import json as _json
+
+    ticker = symbol.upper()
+
+    async def event_generator():
+        heartbeat_interval = 30
+        data_interval = 5
+        elapsed = 0
+
+        while True:
+            await asyncio.sleep(data_interval)
+            elapsed += data_interval
+
+            # Push latest cached signal/forecast
+            try:
+                cache_key = f"forecast:{ticker}"
+                data = unified_cache.get(cache_key)
+                if data:
+                    payload = data if isinstance(data, dict) else {"raw": data}
+                    payload["ticker"] = ticker
+                    payload["ts"] = int(asyncio.get_event_loop().time())
+                    yield f"data: {_json.dumps(payload)}\n\n"
+                else:
+                    # Trigger a fresh forecast in background, send placeholder
+                    yield f"data: {_json.dumps({'ticker': ticker, 'type': 'pending'})}\n\n"
+            except Exception as exc:
+                logger.warning(f"SSE stream error for {ticker}: {exc}")
+
+            if elapsed % heartbeat_interval == 0:
+                yield f"data: {_json.dumps({'type': 'heartbeat', 'ticker': ticker})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+# ── AI Assistant (streaming SSE) ──────────────────────────────────────
+class AssistantRequest(BaseModel):
+    message: str
+    history: List[Dict[str, Any]] = []
+
+
+@app.post("/api/v1/assistant/{symbol}")
+async def assistant(symbol: str, req: AssistantRequest):
+    """
+    Streaming Claude analysis scoped to a single ticker.
+    Returns text/event-stream chunks for the AssistantDrawer component.
+
+    POST body: { "message": "Why is the score bullish?", "history": [...] }
+    """
+    from fastapi.responses import StreamingResponse
+    from backend.backend.intelligence.llm import stream_ticker_analysis
+
+    ticker = symbol.upper()
+
+    async def sse_gen():
+        try:
+            async for chunk in stream_ticker_analysis(ticker, req.message, req.history):
+                if chunk:
+                    yield f"data: {chunk}\n\n"
+        except Exception as exc:
+            yield f"data: [Error: {exc}]\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        sse_gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+# ── Anomaly detection endpoint ────────────────────────────────────────
+@app.get("/api/v1/anomaly/{symbol}")
+async def anomaly_check(symbol: str):
+    """
+    Z-score anomaly detection on price + volume for the last 20 bars.
+    Returns {price_z, price_anomaly, volume_z, volume_anomaly, combined_flag}.
+    """
+    sym = symbol.upper()
+    try:
+        from backend.backend.lib.indicators import detect_anomaly
+        bars = await get_bars(sym, timeframe="1Day", limit=25)
+        closes  = [b["close"]  for b in bars if "close"  in b]
+        volumes = [b["volume"] for b in bars if "volume" in b]
+
+        pz, pa = detect_anomaly(closes)  if len(closes)  >= 3 else (0.0, False)
+        vz, va = detect_anomaly(volumes) if len(volumes) >= 3 else (0.0, False)
+
+        return {
+            "ticker": sym,
+            "price_z":       round(pz, 3),
+            "price_anomaly": pa,
+            "volume_z":      round(vz, 3),
+            "volume_anomaly": va,
+            "combined_flag": pa or va,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Full indicator snapshot ───────────────────────────────────────────
+@app.get("/api/v1/indicators/{symbol}")
+async def full_indicators(symbol: str):
+    """
+    Complete indicator snapshot: RSI, MACD, Bollinger Bands, ATR, VWAP, composite.
+    Uses the new lib/indicators.py engine with proper Wilder smoothing.
+    """
+    sym = symbol.upper()
+    try:
+        from backend.backend.lib.indicators import (
+            calc_rsi, calc_macd, calc_bollinger_bands, calc_atr, calc_vwap,
+            composite_score, detect_anomaly, dict_bars_to_ohlcv,
+        )
+        bars     = await get_bars(sym, timeframe="1Day", limit=60)
+        closes   = [b["close"] for b in bars if "close" in b]
+        ohlcv    = dict_bars_to_ohlcv(bars)
+
+        if len(closes) < 14:
+            raise HTTPException(status_code=422, detail="Need at least 14 bars of history")
+
+        rsi_r  = calc_rsi(closes)[-1]
+        macd_r = calc_macd(closes)[-1]
+        bb_r   = calc_bollinger_bands(closes)[-1]
+        atr_r  = calc_atr(ohlcv)[-1]  if ohlcv else None
+        vwap_r = calc_vwap(ohlcv)[-1] if ohlcv else None
+        comp   = composite_score(closes)
+
+        pz, pa = detect_anomaly(closes)
+        vols   = [b.get("volume", 0) for b in bars]
+        vz, va = detect_anomaly(vols)
+
+        return {
+            "ticker": sym,
+            "composite": {
+                "score":  comp.score,
+                "signal": comp.signal,
+                "weights": comp.weights_used,
+            },
+            "rsi": {
+                "value":  rsi_r.value,
+                "signal": rsi_r.signal,
+                "score":  rsi_r.score,
+            },
+            "macd": {
+                "macd_line":    macd_r.macd_line,
+                "signal_line":  macd_r.signal_line,
+                "histogram":    macd_r.histogram,
+                "signal":       macd_r.signal,
+                "score":        macd_r.score,
+            },
+            "bollinger": {
+                "upper":      bb_r.upper      if bb_r else None,
+                "mid":        bb_r.mid        if bb_r else None,
+                "lower":      bb_r.lower      if bb_r else None,
+                "percent_b":  bb_r.percent_b  if bb_r else None,
+                "bandwidth":  bb_r.bandwidth  if bb_r else None,
+                "signal":     bb_r.signal     if bb_r else None,
+                "score":      bb_r.score      if bb_r else None,
+            },
+            "atr": {
+                "value":   atr_r.value   if atr_r else None,
+                "percent": atr_r.percent if atr_r else None,
+            },
+            "vwap": {
+                "value":     vwap_r.value     if vwap_r else None,
+                "signal":    vwap_r.signal    if vwap_r else None,
+                "deviation": vwap_r.deviation if vwap_r else None,
+            },
+            "anomaly": {
+                "price_z":       round(pz, 3),
+                "price_anomaly": pa,
+                "volume_z":      round(vz, 3),
+                "volume_anomaly": va,
+            },
+            "bars_used": len(closes),
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 if __name__ == "__main__":

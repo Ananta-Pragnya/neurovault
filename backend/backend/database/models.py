@@ -8,6 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     username = Column(String, unique=True, index=True)
+    hashed_password = Column(String, nullable=True)  # bcrypt hash — added by 0001 migration
     created_at = Column(DateTime, default=datetime.utcnow)
     
     watchlists = relationship("Watchlist", back_populates="user")
@@ -72,3 +73,14 @@ class EnsembleWeight(Base):
     model_name = Column(String, unique=True, index=True)
     weight_value = Column(Float, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class PriceAlert(Base):
+    """User-defined price threshold alerts (fires when price crosses trigger_price)."""
+    __tablename__ = "price_alerts"
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String, index=True, nullable=False)
+    trigger_price = Column(Float, nullable=False)
+    direction = Column(String, nullable=False)  # "above" or "below"
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    triggered_at = Column(DateTime, nullable=True)

@@ -255,18 +255,26 @@ async def _get_bars_yfinance(symbol: str, limit: int) -> list[dict]:
 
 async def get_bars(symbol: str, timeframe: str = "1Day", limit: int = 60) -> list[dict]:
     """
-    Fetch OHLCV bars. Tries yfinance first (Alpaca free tier returns null bars).
-    Falls back to Alpaca v2 bars endpoint.
+    Fetch OHLCV bars. Fallback chain: Finnhub → Polygon → yfinance → Alpaca → Synthetic GBM.
+    Polygon.io (free tier, real 2yr history) activates when POLYGON_API_KEY is set in .env.
     """
     cache_key = f"bars:{symbol}:{timeframe}:{limit}"
     cached    = unified_cache.get(cache_key)
     if cached:
         return cached
 
-    # Primary: Finnhub (confirmed working, no extra cost)
+    # Tier 1: Finnhub (confirmed working, no extra cost)
     bars = await _get_bars_finnhub(symbol, limit)
 
-    # Secondary: Yahoo Finance
+    # Tier 2: Polygon.io (real 2yr daily history, free tier)
+    if not bars:
+        try:
+            from backend.backend.services.polygon_bars import get_bars_polygon
+            bars = await get_bars_polygon(symbol, limit)
+        except Exception as e:
+            logger.warning(f"[Polygon] import or fetch failed for {symbol}: {e}")
+
+    # Tier 3: Yahoo Finance
     if not bars:
         bars = await _get_bars_yfinance(symbol, limit)
 

@@ -7,7 +7,8 @@ const BackgroundMotion: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    // Disable expensive 3D on mobile to prevent lag
+    if (!containerRef.current || window.innerWidth < 768) return;
 
     // Fix: Use THREE namespace from the imported library
     const scene = new THREE.Scene();

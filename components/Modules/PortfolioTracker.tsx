@@ -1,28 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTradingStore } from '../../src/stores/tradingStore';
-import { 
-  Briefcase, 
-  TrendingUp, 
-  TrendingDown, 
-  PieChart as PieIcon, 
-  ShieldAlert, 
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+import {
+  Briefcase,
+  TrendingUp,
+  TrendingDown,
+  PieChart as PieIcon,
+  ShieldAlert,
   BrainCircuit,
   Plus,
   Trash2,
   Loader2,
   BarChart3,
-  Dna
+  Dna,
+  Download
 } from 'lucide-react';
+import { exportCSV } from '../../src/lib/export';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 
 export const PortfolioTracker: React.FC = () => {
-  const { 
-    portfolio, 
-    holdings, 
-    analyzePortfolio, 
-    removeHolding, 
-    loading 
+  const {
+    portfolio,
+    holdings,
+    analyzePortfolio,
+    removeHolding,
+    loading
   } = useTradingStore();
+
+  const [corrMatrix, setCorrMatrix] = useState<{ symbols: string[]; matrix: number[][] } | null>(null);
+
+  const handleExport = () => {
+    if (!portfolio?.positions?.length) return;
+    exportCSV(portfolio.positions.map((p: any) => ({
+      ticker:        p.ticker,
+      quantity:      p.quantity,
+      current_value: p.current_value,
+      pnl:           p.pnl,
+      pnl_pct:       p.pnl_pct,
+      weight_pct:    p.weight_pct,
+    })), `portfolio_${new Date().toISOString().split('T')[0]}`);
+  };
+
+  const fetchCorrelation = useCallback(async () => {
+    if (!holdings.length) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/portfolio/correlation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ holdings: holdings.map((h: any) => ({ symbol: h.ticker || h.symbol, quantity: h.quantity, avg_cost: h.avg_cost || 0 })) }),
+      });
+      if (res.ok) setCorrMatrix(await res.json());
+    } catch { /* offline */ }
+  }, [holdings]);
+
+  useEffect(() => { fetchCorrelation(); }, [holdings.length]);
 
   useEffect(() => {
     analyzePortfolio();
@@ -44,6 +76,16 @@ export const PortfolioTracker: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6 p-6 animate-in fade-in duration-500">
+      {/* Export button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-mono uppercase tracking-widest rounded-md border border-white/10 text-slate-400 hover:text-emerald-400 hover:border-emerald-400/30 transition-all"
+        >
+          <Download size={12} /> Export CSV
+        </button>
+      </div>
+
       {/* Portfolio Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-950 border border-white/5 rounded-2xl p-6">
@@ -221,6 +263,50 @@ export const PortfolioTracker: React.FC = () => {
            </div>
         </div>
       </div>
+      {/* Correlation Matrix */}
+      {corrMatrix && corrMatrix.symbols.length >= 2 && (
+        <div className="bg-slate-950 border border-white/5 rounded-2xl p-6">
+          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-4">Asset Correlation Matrix (60d)</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: '11px', fontFamily: "'JetBrains Mono', monospace" }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '6px 10px', color: '#4A5260' }}></th>
+                  {corrMatrix.symbols.map(s => (
+                    <th key={s} style={{ padding: '6px 10px', color: '#9EA8B3', fontWeight: 600, textAlign: 'center' }}>{s}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {corrMatrix.symbols.map((rowSym, ri) => (
+                  <tr key={rowSym}>
+                    <td style={{ padding: '6px 10px', color: '#9EA8B3', fontWeight: 600 }}>{rowSym}</td>
+                    {corrMatrix.matrix[ri].map((val, ci) => {
+                      const bg = ri === ci ? 'rgba(91,155,213,0.2)'
+                        : val > 0.8 ? 'rgba(201,79,79,0.35)'
+                        : val > 0.5 ? 'rgba(201,79,79,0.15)'
+                        : val < -0.3 ? 'rgba(76,175,130,0.2)'
+                        : 'transparent';
+                      return (
+                        <td key={ci} style={{ padding: '6px 12px', background: bg, textAlign: 'center', borderRadius: '4px',
+                          color: ri === ci ? '#5B9BD5' : val > 0.8 ? '#C94F4F' : val > 0.5 ? '#D4892A' : '#9EA8B3' }}>
+                          {val.toFixed(2)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {corrMatrix.matrix.some((row, ri) => row.some((v, ci) => ri !== ci && v > 0.8)) && (
+            <p className="text-[10px] text-red-400 mt-3 font-mono">
+              ⚠ High correlation detected (&gt;0.8) — consider reducing exposure to correlated assets
+            </p>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };

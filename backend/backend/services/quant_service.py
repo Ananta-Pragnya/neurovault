@@ -128,7 +128,7 @@ class QuantService:
         return []
 
     # ── Real Ensemble Forecast ─────────────────────────────────────
-    async def run_ensemble_forecast(self, symbol: str) -> Dict[str, Any]:
+    async def run_ensemble_forecast(self, symbol: str) -> Dict[str, Any]:  # noqa: C901
         """
         Three-signal real TA ensemble.
         Replaces the old random.uniform fake models completely.
@@ -144,6 +144,18 @@ class QuantService:
             }
 
         last_close = prices[-1]
+
+        # ── NEW: Import indicator engine for MACD + ATR ─────────────
+        try:
+            from backend.backend.lib.indicators import calc_macd, detect_anomaly
+            macd_results = calc_macd(prices)
+            macd_r       = macd_results[-1] if macd_results else None
+            macd_hist    = macd_r.histogram if macd_r else 0.0
+            macd_score   = macd_r.score     if macd_r else 0.0
+            price_z, price_anomaly = detect_anomaly(prices)
+        except Exception as _e:
+            logger.warning(f"Indicator engine import failed: {_e}")
+            macd_hist = 0.0; macd_score = 0.0; price_anomaly = False; price_z = 0.0
 
         # ── Signal 1: SMA 20/50 crossover (was fake "LSTM") ────────
         sma_20 = compute_sma(prices, 20)
@@ -240,11 +252,15 @@ class QuantService:
                 "sma_trend":    {"value": round(sma_signal, 4),   "label": f"SMA 20/50 ({'golden' if sma_signal > 0 else 'death'} cross)"},
                 "rsi_momentum": {"value": round(rsi_signal, 4),   "label": f"RSI {rsi:.1f}"},
                 "bollinger":    {"value": round(boll_signal, 4),  "label": f"Bollinger {boll_raw:+.2f}σ"},
+                "macd":         {"value": round(macd_score, 4),   "label": f"MACD hist {macd_hist:+.4f}"},
             },
             "sma_20":        round(sma_20, 2),
             "sma_50":        round(sma_50, 2),
             "rsi":           rsi,
+            "macd_histogram": round(macd_hist, 4),
             "momentum_pct":  momentum,
+            "anomaly_flag":  price_anomaly,
+            "price_z_score": round(price_z, 3),
             "market_analysis": market_analysis,
             "source":        "real_ta",
         }

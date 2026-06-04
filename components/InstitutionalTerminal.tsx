@@ -13,6 +13,9 @@ import { SimulationLab } from './Modules/SimulationLab';
 import MarketIntelTerminal from './MarketIntel/MarketIntelTerminal';
 import QuantPulseTerminal from './QuantPulse/QuantPulseTerminal';
 import { EdgeScanner } from './Modules/EdgeScanner';
+import { SectorHeatmap } from './Modules/SectorHeatmap';
+import { BacktestLab } from './Modules/BacktestLab';
+import { AlertPanel } from './Alerts/AlertPanel';
 import { TabErrorBoundary } from './ErrorBoundary';
 import { MonitorOff, Activity, RefreshCw } from 'lucide-react';
 import { marketSocket, MarketStatus } from '../services/MarketSocket';
@@ -116,6 +119,9 @@ export const InstitutionalTerminal: React.FC = () => {
             case 'portfolio':   return wrap('Portfolio Tracker', <PortfolioTracker />);
             case 'lab':         return wrap('Simulation Lab',    <SimulationLab />);
             case 'edge':        return wrap('Edge Scanner',      <EdgeScanner />);
+            case 'sectors':     return wrap('Sector Heatmap',   <SectorHeatmap />);
+            case 'backtest':    return wrap('Backtest Lab',      <BacktestLab />);
+            case 'alerts':      return wrap('Price Alerts',      <AlertPanel />);
             default:            return <Navigate to="/terminal/intel" />;
         }
     };
