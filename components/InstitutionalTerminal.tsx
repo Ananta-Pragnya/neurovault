@@ -245,6 +245,34 @@ export const InstitutionalTerminal: React.FC = () => {
                 }} />
             )}
 
+            {/* WIP banner */}
+            <div style={{
+                background: 'rgba(201,150,42,0.07)',
+                borderBottom: `1px solid rgba(201,150,42,0.18)`,
+                padding: '7px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                flexShrink: 0,
+            }}>
+                <div style={{
+                    width: '5px', height: '5px', borderRadius: '50%',
+                    background: C.gold,
+                    boxShadow: `0 0 6px rgba(201,150,42,0.8)`,
+                    animation: 'nvPulse 1.8s ease-in-out infinite',
+                    flexShrink: 0,
+                }} />
+                <span style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: '9px',
+                    color: C.gold,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                }}>
+                    Terminal actively under development — features and data feeds are being expanded
+                </span>
+            </div>
+
             {/* Main content */}
             <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
                 <MarketPulseDashboard />
