@@ -91,6 +91,14 @@ try:
 except Exception as _e:
     logger.warning(f"Auth router not loaded: {_e}")
 
+# ── Search router (RAG + web search) ───────────────────────────────
+try:
+    from backend.backend.api.search import router as search_router
+    app.include_router(search_router, prefix="/api/v1")
+    logger.info("Search router mounted at /api/v1/search")
+except Exception as _e:
+    logger.warning(f"Search router not loaded: {_e}")
+
 
 # ── Dynamic Ticker Registry ────────────────────────────────────────
 class TickerRegistry:

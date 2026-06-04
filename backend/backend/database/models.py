@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Enum, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .db import Base
@@ -84,3 +84,17 @@ class PriceAlert(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     triggered_at = Column(DateTime, nullable=True)
+
+
+class Embedding(Base):
+    """Vector store — 512-dim Voyage voyage-3-lite embeddings as JSON text."""
+    __tablename__ = "embeddings"
+    id = Column(Integer, primary_key=True, index=True)
+    source_type = Column(String(20), nullable=False, index=True)  # article | bar_signal | web_result
+    source_id = Column(String(80), nullable=False, index=True)
+    ticker = Column(String(10), nullable=True, index=True)
+    content = Column(Text, nullable=False)
+    embedding_json = Column(Text, nullable=False)  # JSON float array
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    __table_args__ = (UniqueConstraint("source_type", "source_id", name="uq_embedding_source"),)
