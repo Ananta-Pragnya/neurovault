@@ -1,6 +1,6 @@
 # NeuroVault Intelligence
 
-**Institutional-grade financial intelligence terminal. Real-time regime detection, asymmetric edge scanning, AI-augmented forecasting, and defined-risk options structures — built on the Universa/Taleb playbook.**
+**Institutional-grade financial intelligence terminal. Real-time regime detection, asymmetric edge scanning, AI-augmented forecasting, and defined-risk options structures - built on the Universa/Taleb playbook.**
 
 > Live: [neurovault.vercel.app](https://neurovault.vercel.app) · Backend: Local PC → Cloudflare Quick Tunnel · Repo: [github.com/Ananta-Pragnya/neurovault](https://github.com/Ananta-Pragnya/neurovault)
 
@@ -25,7 +25,7 @@
 
 Most retail trading tools are wrong by design. They encourage overtrading, present fabricated confidence, show signals without defined risk, and optimize for engagement rather than edge.
 
-NeuroVault was built against that. The intellectual foundation is the Universa/Nassim Taleb framework: financial markets systematically misprice tail events because the majority of participants are structurally forced to sell volatility (covered calls, vol-target funds, cash-secured puts). When that mispricing is extreme, a defined-risk bet on the other side has positive expected value even if it loses 70% of the time — because the wins are convex.
+NeuroVault was built against that. The intellectual foundation is the Universa/Nassim Taleb framework: financial markets systematically misprice tail events because the majority of participants are structurally forced to sell volatility (covered calls, vol-target funds, cash-secured puts). When that mispricing is extreme, a defined-risk bet on the other side has positive expected value even if it loses 70% of the time - because the wins are convex.
 
 That philosophy dictated every architectural decision. Every endpoint, every UI component, every number displayed had to earn its place against that standard. An RSI number alone is not intelligence. A Monte Carlo distribution with defined percentiles is. A "BUY" button is not intelligence. A Kelly-sized entry cost percentage with a stated maximum loss is.
 
@@ -41,20 +41,20 @@ That philosophy dictated every architectural decision. Every endpoint, every UI 
 |---------|---------|------|
 | React | 19.2.4 | UI framework (concurrent features) |
 | TypeScript | 5.8.2 | Full type safety across 60+ files |
-| Vite | 6.2.0 | Build tool — sub-100ms HMR, native ESM |
+| Vite | 6.2.0 | Build tool - sub-100ms HMR, native ESM |
 | Tailwind CSS | v4.1.18 | Utility-first styling (PostCSS-based) |
 | Zustand | 5.0.12 | Minimal global state |
 | Framer Motion | 12.34.0 | Layout animations, tab transitions |
-| Recharts | 2.15.1 | SVG charts — area, line, pie, payoff diagrams |
+| Recharts | 2.15.1 | SVG charts - area, line, pie, payoff diagrams |
 | React Three Fiber | 9.0.0 | 3D globe via Three.js |
 | Lucide React | 0.577.0 | Icon system |
 | React Router DOM | 7.1.5 | Landing page vs terminal routing |
 
 ### Two Worlds, One Repo
 
-**Landing page** (`/`) — marketing surface with 3D globe animation, gold gradient branding, pricing, and auth.
+**Landing page** (`/`) - marketing surface with 3D globe animation, gold gradient branding, pricing, and auth.
 
-**Terminal** (`/terminal`) — the actual product. `InstitutionalTerminal` is the shell. `InstitutionalNav` is the tab bar. Seven modules:
+**Terminal** (`/terminal`) - the actual product. `InstitutionalTerminal` is the shell. `InstitutionalNav` is the tab bar. Seven modules:
 
 | Tab | Component | Data Source |
 |-----|-----------|-------------|
@@ -68,28 +68,28 @@ That philosophy dictated every architectural decision. Every endpoint, every UI 
 
 Plus standalone: `EdgeScanner.tsx` (vol mispricing scanner, asymmetric bet generation).
 
-### Design System — NV Palette
+### Design System - NV Palette
 
 ```css
---nv-bg:       #0A0A0B   /* obsidian black — backgrounds */
---nv-surface:  #111113   /* near-black — card surfaces */
---nv-gold:     #C9962A   /* molten gold — CTAs, accents */
+--nv-bg:       #0A0A0B   /* obsidian black - backgrounds */
+--nv-surface:  #111113   /* near-black - card surfaces */
+--nv-gold:     #C9962A   /* molten gold - CTAs, accents */
 --nv-gold-text:#D4A843   /* gold text variant */
---nv-platinum: #9EA8B3   /* platinum — body text */
---nv-sage:     #4CAF82   /* sage green — bullish, live data */
---nv-coral:    #C94F4F   /* coral red — bearish, alerts */
---nv-ice:      #5B9BD5   /* ice blue — metadata, feed status */
+--nv-platinum: #9EA8B3   /* platinum - body text */
+--nv-sage:     #4CAF82   /* sage green - bullish, live data */
+--nv-coral:    #C94F4F   /* coral red - bearish, alerts */
+--nv-ice:      #5B9BD5   /* ice blue - metadata, feed status */
 --nv-border:   #1E1E21   /* card borders */
 --nv-border-2: #2A2A2E   /* inner borders */
 ```
 
-**Typography:** Inter for all UI text and headings. JetBrains Mono strictly for numerical data values. JetBrains Mono is monospaced — every digit takes identical width, preventing price numbers from jumping horizontally as they update.
+**Typography:** Inter for all UI text and headings. JetBrains Mono strictly for numerical data values. JetBrains Mono is monospaced - every digit takes identical width, preventing price numbers from jumping horizontally as they update.
 
-The landing page runs a parallel legacy gold system (`bg-gold-gradient`, `gold-primary` Tailwind tokens) in the same stylesheet with no conflicts — two namespaces, one `index.css`.
+The landing page runs a parallel legacy gold system (`bg-gold-gradient`, `gold-primary` Tailwind tokens) in the same stylesheet with no conflicts - two namespaces, one `index.css`.
 
 ### Navigation Architecture
 
-`InstitutionalNav.tsx` — 48px total height: 2px breathing gold stripe (CSS animation, no JS) + 46px main bar. Text-only tabs — no icons on inactive tabs. Active tab underline uses Framer Motion `layoutId="nvTabLine"` — a single DOM node sliding between tabs with spring physics (`stiffness: 380, damping: 30`). Terminal content uses `paddingTop: '48px'` to match exactly.
+`InstitutionalNav.tsx` - 48px total height: 2px breathing gold stripe (CSS animation, no JS) + 46px main bar. Text-only tabs - no icons on inactive tabs. Active tab underline uses Framer Motion `layoutId="nvTabLine"` - a single DOM node sliding between tabs with spring physics (`stiffness: 380, damping: 30`). Terminal content uses `paddingTop: '48px'` to match exactly.
 
 Status bar uses `grid-template-columns: '1fr auto 1fr'`:
 - Left: sage green dot + system status
@@ -98,7 +98,7 @@ Status bar uses `grid-template-columns: '1fr auto 1fr'`:
 
 ### State Management
 
-`src/stores/tradingStore.ts` (Zustand) holds: `selectedTicker`, `quote`, `portfolio`, `holdings`, `simulation`, per-module `loading` flags, `errors`. Components subscribe selectively — no prop drilling, no Redux ceremony.
+`src/stores/tradingStore.ts` (Zustand) holds: `selectedTicker`, `quote`, `portfolio`, `holdings`, `simulation`, per-module `loading` flags, `errors`. Components subscribe selectively - no prop drilling, no Redux ceremony.
 
 ### WebSocket Client
 
@@ -128,9 +128,9 @@ Status bar uses `grid-template-columns: '1fr auto 1fr'`:
 
 No database. No Redis. No microservices. A single uvicorn process with three asyncio background tasks running concurrently:
 
-1. **Market data loop** — refreshes all registered symbols from Alpaca every 30 seconds
-2. **WebSocket streamer** — broadcasts Alpaca tick updates to all connected frontends
-3. **MarketPulse engine** — computes regime state from rolling deques, broadcasts transitions
+1. **Market data loop** - refreshes all registered symbols from Alpaca every 30 seconds
+2. **WebSocket streamer** - broadcasts Alpaca tick updates to all connected frontends
+3. **MarketPulse engine** - computes regime state from rolling deques, broadcasts transitions
 
 ### File Structure
 
@@ -164,13 +164,13 @@ backend/
 
 ### Unified Cache
 
-Dictionary with per-key TTL. Quotes: 30s. Forecasts: 300s. Portfolio: 30s. Prevents hammering Alpaca's 200 calls/minute free tier limit. Cache is in-memory — cleared on restart, no Redis dependency, no serialization overhead.
+Dictionary with per-key TTL. Quotes: 30s. Forecasts: 300s. Portfolio: 30s. Prevents hammering Alpaca's 200 calls/minute free tier limit. Cache is in-memory - cleared on restart, no Redis dependency, no serialization overhead.
 
 ### Event Bus
 
-In-process pub/sub. Events: `SENTIMENT_BEARISH`, `SENTIMENT_BULLISH`, `FORECAST_UPDATED`, `ANOMALY_DETECTED`, `PORTFOLIO_CHANGED`, `SIMULATION_READY`. When a bearish sentiment event fires for a symbol, a subscribed handler immediately penalises the cached forecast confidence for that symbol by up to 10% (proportional to signal magnitude). News and forecasting modules never call each other directly — they communicate through the bus.
+In-process pub/sub. Events: `SENTIMENT_BEARISH`, `SENTIMENT_BULLISH`, `FORECAST_UPDATED`, `ANOMALY_DETECTED`, `PORTFOLIO_CHANGED`, `SIMULATION_READY`. When a bearish sentiment event fires for a symbol, a subscribed handler immediately penalises the cached forecast confidence for that symbol by up to 10% (proportional to signal magnitude). News and forecasting modules never call each other directly - they communicate through the bus.
 
-### PYTHONPATH — Critical
+### PYTHONPATH - Critical
 
 The import chain is non-obvious. Project root → `backend/` (package) → `backend/` (inner package) → module. Must set before running:
 
@@ -191,7 +191,7 @@ Alpaca free plan returns HTTP 200 with `{"bars": null}` for historical OHLCV. `g
 1. Alpaca v2 bars API
 2. Finnhub candle endpoint
 3. yfinance
-4. **Synthetic GBM** — generates statistically plausible bars using geometric Brownian motion, anchored to the real current Alpaca snapshot price. Last bar always equals live price.
+4. **Synthetic GBM** - generates statistically plausible bars using geometric Brownian motion, anchored to the real current Alpaca snapshot price. Last bar always equals live price.
 
 ### TA Ensemble (quant_service.py)
 
@@ -205,7 +205,7 @@ Composite = weighted average. Direction: composite > 0.15 → bullish, < -0.15 �
 
 ### Monte Carlo GBM (monte_carlo.py)
 
-`dS = S(μ·dt + σ·√dt·Z)` where μ = drift from recent history, σ = volatility parameter, dt = 1/252, Z ~ N(0,1). 1000 paths × 252 steps. Runs as FastAPI `BackgroundTask` — POST returns immediately, GET polls for result. Statistics: mean, median, p5, p95, prob_above_start, prob_loss_10pct.
+`dS = S(μ·dt + σ·√dt·Z)` where μ = drift from recent history, σ = volatility parameter, dt = 1/252, Z ~ N(0,1). 1000 paths × 252 steps. Runs as FastAPI `BackgroundTask` - POST returns immediately, GET polls for result. Statistics: mean, median, p5, p95, prob_above_start, prob_loss_10pct.
 
 ### Portfolio Analyzer (portfolio_analyzer.py)
 
@@ -230,7 +230,7 @@ Kelly sizing: `f* = (p×b - q) / b` at ¼ Kelly. Minimum thresholds: upside mult
 
 ### Market Pulse Engine (market_pulse.py)
 
-425 lines. Rolling deques of tick data per symbol. Realized vol at three timeframes: 5-minute (instant), 60-minute (hourly), 20-day (daily). Regime state machine with hysteresis — 3 consecutive confirmations required before transition to prevent whipsaw. Emergency broadcast within 100ms of confirmed transition. Max 1 broadcast/second/symbol. Zero additional API calls — piggybacks on existing Alpaca WS stream.
+425 lines. Rolling deques of tick data per symbol. Realized vol at three timeframes: 5-minute (instant), 60-minute (hourly), 20-day (daily). Regime state machine with hysteresis - 3 consecutive confirmations required before transition to prevent whipsaw. Emergency broadcast within 100ms of confirmed transition. Max 1 broadcast/second/symbol. Zero additional API calls - piggybacks on existing Alpaca WS stream.
 
 Regimes: `COMPRESSED | NORMAL | STRESSED | CRISIS | TRANSITION`
 
@@ -251,7 +251,7 @@ Groq narrates each result in plain English after math runs.
 
 ## V. Deployment
 
-### Frontend — Vercel
+### Frontend - Vercel
 
 ```json
 {
@@ -266,7 +266,7 @@ Groq narrates each result in plain English after math runs.
 - SPA rewrite: all routes → `index.html` (prevents 404 on direct navigation to `/terminal`)
 - Auto-deploys on every `git push origin main`
 
-### Backend — Local PC + Cloudflare Quick Tunnel
+### Backend - Local PC + Cloudflare Quick Tunnel
 
 ```powershell
 # 1. Start backend
@@ -280,14 +280,14 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 # 3. Update Vercel env var VITE_API_BASE → new tunnel URL → redeploy
 ```
 
-Cloudflare handles TLS termination. URL is ephemeral — changes every tunnel restart, requiring Vercel env var update + redeploy (~90 seconds).
+Cloudflare handles TLS termination. URL is ephemeral - changes every tunnel restart, requiring Vercel env var update + redeploy (~90 seconds).
 
 ### What Failed
 
 | Platform | Reason |
 |----------|--------|
-| Render | Requires paid plan for always-on (free tier sleeps after 15min — kills WebSocket) |
-| Railway | OOM killed — NumPy + SciPy + Monte Carlo hits ~400MB; free tier limit ~512MB with insufficient headroom |
+| Render | Requires paid plan for always-on (free tier sleeps after 15min - kills WebSocket) |
+| Railway | OOM killed - NumPy + SciPy + Monte Carlo hits ~400MB; free tier limit ~512MB with insufficient headroom |
 | Koyeb | Attempted via Dockerfile; HF Spaces port 7860 conflicts, cold start 8–12s breaks WS |
 | Hugging Face Spaces | Latency too high for real-time streaming use case |
 
@@ -316,13 +316,13 @@ This project was built in collaboration with Claude (Anthropic). The user came i
 
 **Backend engineering**: Diagnosed and architected the Alpaca 4-tier fallback. Rewrote `quant_service.py` from `random.uniform()` noise to real TA calculations with correct Wilder's smoothing for RSI, proper SMA crossover scoring, and Bollinger Band position analysis. Identified and resolved the nested PYTHONPATH import chain. Traced every 404 to its missing endpoint and either created it or redirected. Wrote live price injection into the portfolio analyzer (Alpaca batch snapshot at analysis time, merged before Sharpe/VaR computation).
 
-**Frontend debugging**: Traced and fixed every runtime crash — `new URL('#')` exception, `charAt` on undefined `forecast.direction`, WebSocket URL derivation errors. Refactored `VITE_API_BASE` pattern across every component and service file. Fixed Zustand fetch logic to call endpoints that actually exist.
+**Frontend debugging**: Traced and fixed every runtime crash - `new URL('#')` exception, `charAt` on undefined `forecast.direction`, WebSocket URL derivation errors. Refactored `VITE_API_BASE` pattern across every component and service file. Fixed Zustand fetch logic to call endpoints that actually exist.
 
-**Design execution**: Executed three complete design iterations (Meridian / Obsidian Gold / NV system). Identified landing page breakage from the first redesign and architected the dual-namespace solution. Introduced Framer Motion `layoutId` tab animation, 3-zone CSS grid status bar, `.skeleton` loading class, `.nv-slider` range input override, and the 48px nav height math. Applied the NV design system across 10 files in a single session — QuantPulseTerminal, MarketDashboard, EdgeScanner, PortfolioTracker, SimulationLab, MarketPulseDashboard, InstitutionalNav, InstitutionalTerminal, index.css, index.html, tailwind.config.js.
+**Design execution**: Executed three complete design iterations (Meridian / Obsidian Gold / NV system). Identified landing page breakage from the first redesign and architected the dual-namespace solution. Introduced Framer Motion `layoutId` tab animation, 3-zone CSS grid status bar, `.skeleton` loading class, `.nv-slider` range input override, and the 48px nav height math. Applied the NV design system across 10 files in a single session - QuantPulseTerminal, MarketDashboard, EdgeScanner, PortfolioTracker, SimulationLab, MarketPulseDashboard, InstitutionalNav, InstitutionalTerminal, index.css, index.html, tailwind.config.js.
 
 **Strategic judgment**: Pushed back on generic aesthetics. Replaced every empty dark void state with structured placeholders (icon, message, action button). Toned the EdgeScanner green from saturated emerald to NV sage without being asked. Made the "NO DATA" badge prominent (gold-bordered pill) instead of a small amber text fragment. Identified which technical debt was load-bearing and which was safe to remove.
 
-The contributions were not mechanical task completion — they were made with enough understanding of the product's thesis to make judgment calls about design consistency, API design, and quantitative correctness.
+The contributions were not mechanical task completion - they were made with enough understanding of the product's thesis to make judgment calls about design consistency, API design, and quantitative correctness.
 
 ---
 
