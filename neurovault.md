@@ -686,14 +686,14 @@ Next forecast for AAPL applies adjustment to confidence
 #### **File: `backend/backend/services/llama_service.py` (100+ lines)**
 
 **PURPOSE:**
-Groq-hosted LLM inference for narrative generation. Two models: Llama 4 Scout (fast, reasoning) and Llama 3.3 70B (deep, strategy). Never downloaded locally; always calls Groq API.
+Groq-hosted LLM inference for narrative generation. Two models: Llama 4 Scout (fast, reasoning) and GPT-OSS 120B (deep, strategy). Never downloaded locally; always calls Groq API.
 
 **KEY LOGIC:**
 
 1. **Model Configuration (lines 36-44):**
    - `MODEL_PRIMARY = "meta-llama/llama-4-scout-17b-16e-instruct"` â€” 250+ tokens/s, vision-ready
-   - `MODEL_REASONING = "llama-3.3-70b-versatile"` â€” institutional quality
-   - `MODEL_FALLBACK = MODEL_PRIMARY` â€” if 70B rate-limited, fall back to Scout
+   - `MODEL_REASONING = "openai/gpt-oss-120b"` â€” institutional quality (Groq's recommended replacement after deprecating llama-3.3-70b-versatile on 2026-06-17)
+   - `MODEL_FALLBACK = MODEL_PRIMARY` â€” if 120B rate-limited, fall back to Scout
 
 2. **Groq Client (lines 26-33):**
    ```python

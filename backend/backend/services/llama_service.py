@@ -3,8 +3,8 @@ LlamaService — Groq-hosted AI inference for FinMotion AI.
 
 Two models:
   • Llama 4 Scout  (MODEL_PRIMARY)   → fast forecast reasoning
-  • Llama 3.3 70B  (MODEL_REASONING) → deep strategy narration
-  • Auto-fallback: 70B → Scout on rate-limit (429)
+  • GPT-OSS 120B   (MODEL_REASONING) → deep strategy narration
+  • Auto-fallback: 120B → Scout on rate-limit (429)
 
 Neither model is downloaded locally — both run on Groq's servers.
 Set GROQ_API_KEY in backend/.env and call them like any REST API.
@@ -37,8 +37,9 @@ def _get_client() -> Groq:
 MODEL_PRIMARY   = "meta-llama/llama-4-scout-17b-16e-instruct"
 # Llama 4 Scout — 250+ tok/s, vision-ready, handles forecast reasoning
 
-MODEL_REASONING = "llama-3.3-70b-versatile"
-# Llama 3.3 70B — institutional quality for strategy narration
+MODEL_REASONING = "openai/gpt-oss-120b"
+# GPT-OSS 120B — institutional quality for strategy narration
+# (Groq deprecated llama-3.3-70b-versatile on 2026-06-17; this is their recommended replacement)
 
 MODEL_FALLBACK  = "meta-llama/llama-4-scout-17b-16e-instruct"
 # If 70B hits rate limit → Scout takes over automatically
@@ -75,7 +76,7 @@ def _call_groq(
         err_str = str(e)
         # Auto-fallback: 70B rate limit → Scout
         if ("429" in err_str or "rate_limit" in err_str.lower()) and mode == "reasoning":
-            logger.warning("[Llama] 3.3 70B rate-limit hit — falling back to Llama 4 Scout")
+            logger.warning("[Llama] GPT-OSS 120B rate-limit hit — falling back to Llama 4 Scout")
             return _call_groq(system, user, max_tokens, mode="fallback")
         logger.error(f"[Llama] Groq call failed ({mode}): {e}")
         raise
@@ -134,7 +135,7 @@ async def generate_forecast_reasoning(forecast: dict) -> str:
         )
 
 
-# ── Strategy Narration (Llama 3.3 70B) ───────────────────────────
+# ── Strategy Narration (GPT-OSS 120B) ────────────────────────────
 _STRATEGY_SYSTEM = """You are a senior options strategist writing institutional trade rationale.
 Exactly 3 sentences:
 1. Why this strategy fits current market conditions and forecast.
@@ -149,7 +150,7 @@ async def generate_strategy_narration(
     forecast:      dict | None = None,
 ) -> str:
     """
-    Llama 3.3 70B writes a 3-sentence trade rationale.
+    GPT-OSS 120B writes a 3-sentence trade rationale.
     Falls back to Scout automatically on rate limit.
     Cached for 5 minutes.
     """

@@ -117,7 +117,7 @@ Status bar uses `grid-template-columns: '1fr auto 1fr'`:
 | Pydantic | 2.7.1 | Request validation, typed models |
 | NumPy | 1.26.4 | All quantitative calculations |
 | SciPy | 1.13.0 | Statistical functions (VaR, distributions) |
-| Groq | 0.9.0 | Llama 3.3 70B inference |
+| Groq | 0.9.0 | GPT-OSS 120B inference |
 | yfinance | 0.2.55 | Fallback OHLCV data |
 | finnhub-python | 2.4.19+ | News articles, sentiment |
 | google-generativeai | 0.24+ | Optional Gemini analysis layer |
@@ -146,7 +146,7 @@ backend/
     services/
       alpaca.py        (354 lines) ← live quotes, OHLCV bars, 4-tier fallback
       quant_service.py (312 lines) ← SMA/RSI/Bollinger ensemble
-      llama_service.py             ← Groq Llama 3.3 70B calls
+      llama_service.py             ← Groq GPT-OSS 120B calls
       intelligence.py              ← Finnhub news + keyword sentiment
       fred.py                      ← FRED macroeconomic data
     engines/
@@ -426,7 +426,7 @@ VITE_API_BASE=https://your-tunnel.trycloudflare.com
 |-------|-------------|
 | Frontend | React 19, TypeScript 5.8, Vite 6, Tailwind CSS v4, Zustand 5, Framer Motion 12, Recharts, Three.js, React Three Fiber |
 | Backend | FastAPI, uvicorn, Python 3.12, NumPy, SciPy, Pydantic v2 |
-| AI/LLM | Groq (Llama 3.3 70B), optional Gemini 1.5 Flash |
+| AI/LLM | Groq (GPT-OSS 120B), optional Gemini 1.5 Flash |
 | Market Data | Alpaca Markets (live), Finnhub (news), FRED (macro) |
 | Deployment | Vercel (frontend) + Cloudflare Quick Tunnel (backend) |
 | Math | Black-Scholes (options), GBM (simulation), Kelly criterion (sizing), Wilder RSI, Bollinger Bands, historical VaR |
