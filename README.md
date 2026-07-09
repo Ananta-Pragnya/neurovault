@@ -2,7 +2,7 @@
 
 **Institutional-grade financial intelligence terminal. Real-time regime detection, asymmetric edge scanning, AI-augmented forecasting, and defined-risk options structures - built on the Universa/Taleb playbook.**
 
-> Live: [neurovault.vercel.app](https://neurovault.vercel.app) · Backend: Local PC → Cloudflare Quick Tunnel · Repo: [github.com/Ananta-Pragnya/neurovault](https://github.com/Ananta-Pragnya/neurovault)
+> Backend: Local PC → Cloudflare Quick Tunnel · Repo: [github.com/Ananta-Pragnya/neurovault](https://github.com/Ananta-Pragnya/neurovault)
 
 ---
 
