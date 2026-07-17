@@ -312,7 +312,7 @@ Cloudflare handles TLS termination. URL is ephemeral - changes every tunnel rest
 
 ## VII. Contributions
 
-This project was built in collaboration with Claude (Anthropic). The user came in as a beginner with a working prototype that had significant gaps across every layer. What followed was full-stack engineering partnership, not task completion.
+This came in as a beginner with a working prototype that had significant gaps across every layer. What followed was full-stack engineering partnership, not task completion.
 
 **Backend engineering**: Diagnosed and architected the Alpaca 4-tier fallback. Rewrote `quant_service.py` from `random.uniform()` noise to real TA calculations with correct Wilder's smoothing for RSI, proper SMA crossover scoring, and Bollinger Band position analysis. Identified and resolved the nested PYTHONPATH import chain. Traced every 404 to its missing endpoint and either created it or redirected. Wrote live price injection into the portfolio analyzer (Alpaca batch snapshot at analysis time, merged before Sharpe/VaR computation).
 
