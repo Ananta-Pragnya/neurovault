@@ -1,10 +1,10 @@
-version: "3.9"
-
 # NeuroVault — docker-compose.yml
 # Quick start: cp .env.example .env && docker compose up --build
 #
 # Services: postgres · redis · backend · frontend
 # Network:  stocknet (bridge)
+
+name: neurovault
 
 networks:
   stocknet:
@@ -25,8 +25,6 @@ services:
       POSTGRES_DB:       ${POSTGRES_DB:-stocktracker}
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-neurovault}"]
       interval: 5s
@@ -39,8 +37,6 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -50,7 +46,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
@@ -60,28 +56,25 @@ services:
         condition: service_healthy
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-neurovault}:${POSTGRES_PASSWORD:-neurovault_pass}@postgres:5432/${POSTGRES_DB:-stocktracker}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-neurovault}:${POSTGRES_PASSWORD:-neurovault_pass}@postgres:5432/${POSTGRES_DB:-stocktracker}
       REDIS_URL: redis://redis:6379
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
     command: >
-      sh -c "pip install -r requirements.txt --quiet &&
-             alembic upgrade head &&
-             uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "cd backend && alembic upgrade head && cd /app &&
+             uvicorn backend.main:app --host 0.0.0.0 --port 8000"
     networks: [stocknet]
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+        VITE_API_BASE: ${VITE_API_BASE:-http://localhost:8000}
     restart: unless-stopped
     depends_on:
       - backend
-    env_file: .env
-    environment:
-      VITE_API_BASE: http://localhost:8000
     ports:
-      - "3000:3000"
+      - "3000:80"
     networks: [stocknet]

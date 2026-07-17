@@ -334,7 +334,22 @@ The contributions were not mechanical task completion - they were made with enou
 - Python 3.12+
 - API keys (see [Environment Variables](#x-environment-variables))
 
-### Frontend
+### Docker (recommended — zero local installs)
+
+Runs the full stack — Postgres, Redis, backend, frontend — with one command. No Node/Python/database setup required, just Docker.
+
+```bash
+cp .env.example .env   # fill in whichever API keys you have — every one is optional
+docker compose up --build
+```
+
+- Frontend → http://localhost:3000
+- Backend → http://localhost:8000 (health check: `/health`)
+- Postgres and Redis run internally only (not published to the host) to avoid clashing with any local install on the default ports
+- Missing/invalid API keys degrade gracefully — the app boots and serves regardless; only the feature tied to that key no-ops or errors on its own request
+- `GEMINI_API_KEY` and `VITE_API_BASE` are baked into the frontend at build time — after changing either in `.env`, rebuild with `docker compose up --build frontend`
+
+### Frontend (manual)
 
 ```bash
 npm install --legacy-peer-deps
@@ -342,7 +357,7 @@ npm run dev
 # → http://localhost:5173
 ```
 
-### Backend
+### Backend (manual)
 
 ```powershell
 # Windows PowerShell
