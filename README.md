@@ -4,7 +4,6 @@
 
 > Backend: Local PC → Cloudflare Quick Tunnel · Repo: [github.com/Ananta-Pragnya/neurovault](https://github.com/Ananta-Pragnya/neurovault)
 
-
 **NOTE:**
 **TERMINAL WEBSITE INACTIVE**
 ---
